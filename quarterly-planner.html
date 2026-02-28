@@ -718,7 +718,55 @@ function setupAddInitiativeButton() {
 }
 
 function renderTeamSummary() {
-    console.log('Rendering team summary...');
+    const teamSummary = document.getElementById('teamSummary');
+    teamSummary.innerHTML = '';
+
+    appState.teams.forEach(team => {
+        const column = createTeamColumn(team);
+        teamSummary.appendChild(column);
+    });
+}
+
+function createTeamColumn(team) {
+    const column = document.createElement('div');
+    column.className = 'team-column';
+
+    // Calculate committed count
+    const committedCount = appState.initiatives.filter(
+        initiative => initiative.teamStates[team.id] === 'committed'
+    ).length;
+
+    // Create header with capacity indicator
+    const header = document.createElement('div');
+    header.className = 'team-column-header';
+
+    const isOverCapacity = committedCount >= appState.maxInitiativesPerTeam;
+    if (isOverCapacity) {
+        header.classList.add('over-capacity');
+    } else {
+        header.classList.add('under-capacity');
+    }
+
+    header.textContent = `${team.name} (${committedCount}/${appState.maxInitiativesPerTeam})`;
+    column.appendChild(header);
+
+    // Add initiative tags for committed and uncommitted states
+    appState.initiatives.forEach(initiative => {
+        const state = initiative.teamStates[team.id];
+        if (state === 'committed' || state === 'uncommitted') {
+            const tag = createInitiativeTag(initiative, state);
+            column.appendChild(tag);
+        }
+    });
+
+    return column;
+}
+
+function createInitiativeTag(initiative, state) {
+    const tag = document.createElement('div');
+    tag.className = `initiative-tag ${state}`;
+    tag.textContent = initiative.name;
+    return tag;
 }
 
 // Initialize on page load
