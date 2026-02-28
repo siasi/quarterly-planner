@@ -284,5 +284,103 @@
             <div id="teamSummary" class="team-summary-grid"></div>
         </section>
     </div>
+
+<script>
+// Data Model
+let appState = {
+    quarter: 'Q1 2026',
+    maxInitiativesPerTeam: 5,
+    teams: [],
+    initiatives: []
+};
+
+// Generate unique IDs
+function generateId(prefix) {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Initialize with sample data
+function initializeSampleData() {
+    appState = {
+        quarter: 'Q1 2026',
+        maxInitiativesPerTeam: 5,
+        teams: [
+            { id: generateId('team'), name: 'Backend Team' },
+            { id: generateId('team'), name: 'Frontend Team' },
+            { id: generateId('team'), name: 'Mobile Team' },
+            { id: generateId('team'), name: 'DevOps Team' }
+        ],
+        initiatives: [
+            {
+                id: generateId('init'),
+                name: 'Customer Dashboard Redesign',
+                teamStates: {}
+            },
+            {
+                id: generateId('init'),
+                name: 'Payment Integration',
+                teamStates: {}
+            },
+            {
+                id: generateId('init'),
+                name: 'Mobile App Performance',
+                teamStates: {}
+            }
+        ]
+    };
+
+    // Initialize all team states as uncommitted for all initiatives
+    appState.initiatives.forEach(initiative => {
+        appState.teams.forEach(team => {
+            initiative.teamStates[team.id] = 'uncommitted';
+        });
+    });
+
+    // Set some example states
+    appState.initiatives[0].teamStates[appState.teams[0].id] = 'committed';
+    appState.initiatives[0].teamStates[appState.teams[1].id] = 'committed';
+    appState.initiatives[1].teamStates[appState.teams[0].id] = 'committed';
+    appState.initiatives[2].teamStates[appState.teams[2].id] = 'completed';
+}
+
+// localStorage management
+const STORAGE_KEY = 'quarterly-planning-data';
+
+function saveToLocalStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+}
+
+function loadFromLocalStorage() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        try {
+            appState = JSON.parse(stored);
+            return true;
+        } catch (e) {
+            console.error('Failed to parse localStorage data:', e);
+            return false;
+        }
+    }
+    return false;
+}
+
+// Initialize app
+function initializeApp() {
+    const hasStoredData = loadFromLocalStorage();
+    if (!hasStoredData) {
+        initializeSampleData();
+        saveToLocalStorage();
+    }
+    render();
+}
+
+// Placeholder render function
+function render() {
+    console.log('Rendering with state:', appState);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initializeApp);
+</script>
 </body>
 </html>
