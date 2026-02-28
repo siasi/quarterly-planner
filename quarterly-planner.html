@@ -1038,13 +1038,7 @@ function createTeamColumn(team) {
     // Create header with capacity indicator
     const header = document.createElement('div');
     header.className = 'team-column-header';
-
-    const isOverCapacity = committedCount >= appState.maxInitiativesPerTeam;
-    if (isOverCapacity) {
-        header.classList.add('over-capacity');
-    } else {
-        header.classList.add('under-capacity');
-    }
+    header.style.color = getTeamColor(team.id);
 
     header.textContent = `${team.name} (${committedCount}/${appState.maxInitiativesPerTeam})`;
     column.appendChild(header);
