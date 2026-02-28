@@ -181,6 +181,11 @@
             color: white;
         }
 
+        .badge-blocked {
+            background: #e74c3c;
+            color: white;
+        }
+
         .state-column {
             min-height: 60px;
             padding: 10px;
@@ -614,10 +619,29 @@ function renderInitiatives() {
     });
 }
 
+function getInitiativeStatusColor(initiative) {
+    const states = Object.values(initiative.teamStates);
+    const hasUncommitted = states.some(state => state === 'uncommitted');
+    const hasCommitted = states.some(state => state === 'committed');
+    const hasCompleted = states.some(state => state === 'completed');
+
+    if (!hasUncommitted) {
+        return '#27ae60'; // Green: All committed
+    } else if (hasCommitted || hasCompleted) {
+        return '#f39c12'; // Yellow: Partially committed
+    } else {
+        return '#e74c3c'; // Red: Not started
+    }
+}
+
 function createInitiativeRow(initiative) {
     const row = document.createElement('div');
     row.className = 'initiative-row';
     row.dataset.initiativeId = initiative.id;
+
+    // Set colored left border based on status
+    const statusColor = getInitiativeStatusColor(initiative);
+    row.style.borderLeft = `5px solid ${statusColor}`;
 
     // Name column
     const nameCol = document.createElement('div');
@@ -830,16 +854,22 @@ function renderInitiativesSummary() {
         nameCell.textContent = initiative.name;
         row.appendChild(nameCell);
 
-        // Status cell
+        // Status cell with traffic light system
         const statusCell = document.createElement('td');
-        const allCommitted = Object.values(initiative.teamStates).every(
-            state => state === 'committed' || state === 'completed'
-        );
+        const states = Object.values(initiative.teamStates);
+        const hasUncommitted = states.some(state => state === 'uncommitted');
+        const hasCommitted = states.some(state => state === 'committed');
+        const hasCompleted = states.some(state => state === 'completed');
 
-        if (allCommitted) {
+        if (!hasUncommitted) {
+            // Green: All teams committed or completed
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ All Committed</span>';
+        } else if (hasCommitted || hasCompleted) {
+            // Yellow: Some uncommitted, but some committed/completed
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Partially Committed</span>';
         } else {
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Pending Commitment</span>';
+            // Red: All uncommitted, none committed, none completed
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked">✕ Not Started</span>';
         }
         row.appendChild(statusCell);
 
