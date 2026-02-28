@@ -98,7 +98,7 @@
 
         .initiative-row {
             display: grid;
-            grid-template-columns: 200px 1fr 1fr 1fr;
+            grid-template-columns: 200px 1fr 1fr 1fr 60px;
             gap: 10px;
             padding: 15px;
             background: #f9f9f9;
@@ -139,6 +139,31 @@
             font-weight: bold;
             display: inline-block;
             margin-top: 4px;
+        }
+
+        .initiative-delete-col {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .initiative-delete-col button {
+            width: 100%;
+            height: 100%;
+            min-height: 80px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .initiative-delete-col button:hover {
+            background: #c0392b;
         }
 
         .badge-committed {
@@ -546,16 +571,11 @@ function createInitiativeRow(initiative) {
         saveToLocalStorage();
     });
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
-
     const commitmentBadge = document.createElement('div');
     commitmentBadge.className = 'initiative-commitment-badge';
     updateCommitmentBadge(commitmentBadge, initiative);
 
     nameCol.appendChild(nameInput);
-    nameCol.appendChild(deleteBtn);
     nameCol.appendChild(commitmentBadge);
 
     // State columns
@@ -563,10 +583,22 @@ function createInitiativeRow(initiative) {
     const committedCol = createStateColumn('committed', initiative);
     const completedCol = createStateColumn('completed', initiative);
 
+    // Delete column
+    const deleteCol = document.createElement('div');
+    deleteCol.className = 'initiative-delete-col';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '🗑️';
+    deleteBtn.title = 'Delete initiative';
+    deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
+
+    deleteCol.appendChild(deleteBtn);
+
     row.appendChild(nameCol);
     row.appendChild(uncommittedCol);
     row.appendChild(committedCol);
     row.appendChild(completedCol);
+    row.appendChild(deleteCol);
 
     return row;
 }
