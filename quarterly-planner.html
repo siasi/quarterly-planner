@@ -98,14 +98,14 @@
 
         .initiative-row {
             display: grid;
-            grid-template-columns: 200px 1fr 1fr 1fr 60px;
+            grid-template-columns: 200px 1fr 1fr 1fr 50px;
             gap: 10px;
             padding: 15px;
             background: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 4px;
             margin-bottom: 10px;
-            align-items: stretch;
+            align-items: start;
         }
 
         .initiative-name-col {
@@ -143,21 +143,24 @@
 
         .initiative-delete-col {
             display: flex;
-            align-items: stretch;
+            align-items: center;
+            justify-content: center;
         }
 
         .initiative-delete-col button {
-            flex: 1;
+            width: 40px;
+            height: 40px;
             background: #e74c3c;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
             transition: background 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 0;
         }
 
         .initiative-delete-col button:hover {
