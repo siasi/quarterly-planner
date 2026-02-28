@@ -613,16 +613,75 @@ function updateCommitmentBadge(badge, initiative) {
     }
 }
 
+let draggedElement = null;
+
 function handleDragStart(e) {
-    console.log('Drag start');
+    draggedElement = e.target;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.innerHTML);
 }
 
 function handleDragEnd(e) {
-    console.log('Drag end');
+    e.target.classList.remove('dragging');
+
+    // Remove drag-over class from all columns
+    document.querySelectorAll('.state-column').forEach(col => {
+        col.classList.remove('drag-over');
+    });
 }
 
 function setupDropZone(col) {
-    console.log('Setup drop zone');
+    col.addEventListener('dragover', handleDragOver);
+    col.addEventListener('dragenter', handleDragEnter);
+    col.addEventListener('dragleave', handleDragLeave);
+    col.addEventListener('drop', handleDrop);
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    if (e.target.classList.contains('state-column')) {
+        e.target.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    if (e.target.classList.contains('state-column')) {
+        e.target.classList.remove('drag-over');
+    }
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    e.preventDefault();
+
+    const dropTarget = e.target.closest('.state-column');
+    if (!dropTarget || !draggedElement) {
+        return false;
+    }
+
+    const teamId = draggedElement.dataset.teamId;
+    const initiativeId = draggedElement.dataset.initiativeId;
+    const newState = dropTarget.dataset.state;
+
+    // Update state in data model
+    const initiative = appState.initiatives.find(i => i.id === initiativeId);
+    if (initiative) {
+        initiative.teamStates[teamId] = newState;
+        saveToLocalStorage();
+        render();
+    }
+
+    return false;
 }
 
 function deleteInitiative(initiativeId) {
