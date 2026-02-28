@@ -376,6 +376,27 @@ function loadFromLocalStorage() {
     return false;
 }
 
+// Header control handlers
+function setupHeaderControls() {
+    const quarterInput = document.getElementById('quarterInput');
+    const maxInitiativesInput = document.getElementById('maxInitiativesInput');
+
+    quarterInput.value = appState.quarter;
+    maxInitiativesInput.value = appState.maxInitiativesPerTeam;
+
+    quarterInput.addEventListener('input', (e) => {
+        appState.quarter = e.target.value;
+        saveToLocalStorage();
+        render();
+    });
+
+    maxInitiativesInput.addEventListener('change', (e) => {
+        appState.maxInitiativesPerTeam = parseInt(e.target.value, 10);
+        saveToLocalStorage();
+        render();
+    });
+}
+
 // Initialize app
 function initializeApp() {
     const hasStoredData = loadFromLocalStorage();
@@ -386,9 +407,19 @@ function initializeApp() {
     render();
 }
 
-// Placeholder render function
 function render() {
     console.log('Rendering with state:', appState);
+    setupHeaderControls();
+    renderInitiatives();
+    renderTeamSummary();
+}
+
+function renderInitiatives() {
+    console.log('Rendering initiatives...');
+}
+
+function renderTeamSummary() {
+    console.log('Rendering team summary...');
 }
 
 // Initialize on page load
