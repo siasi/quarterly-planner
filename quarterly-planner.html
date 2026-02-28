@@ -587,6 +587,30 @@ function importJSON(file) {
                 }
             });
 
+            // Synchronize team states with teams list
+            const validTeamIds = new Set(imported.teams.map(t => t.id));
+
+            imported.initiatives.forEach(initiative => {
+                // Ensure initiative has teamStates object
+                if (!initiative.teamStates) {
+                    initiative.teamStates = {};
+                }
+
+                // Remove orphaned team states (teams that no longer exist)
+                Object.keys(initiative.teamStates).forEach(teamId => {
+                    if (!validTeamIds.has(teamId)) {
+                        delete initiative.teamStates[teamId];
+                    }
+                });
+
+                // Add missing team states for new teams (set to uncommitted)
+                imported.teams.forEach(team => {
+                    if (!initiative.teamStates[team.id]) {
+                        initiative.teamStates[team.id] = 'uncommitted';
+                    }
+                });
+            });
+
             // Confirm before replacing
             if (!confirm('This will replace all current data. Continue?')) {
                 return;
