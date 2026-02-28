@@ -218,6 +218,16 @@
             opacity: 0.5;
         }
 
+        .team-tag-summary {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
         .add-btn {
             padding: 10px 20px;
             background: #27ae60;
@@ -345,6 +355,7 @@
                     <tr>
                         <th>Initiative Name</th>
                         <th>Status</th>
+                        <th>Uncommitted Teams</th>
                     </tr>
                 </thead>
                 <tbody id="initiativesSummaryBody"></tbody>
@@ -825,18 +836,27 @@ function renderInitiativesSummary() {
         if (allCommitted) {
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ All Committed</span>';
         } else {
-            // Find uncommitted teams
-            const uncommittedTeams = appState.teams
-                .filter(team => initiative.teamStates[team.id] === 'uncommitted')
-                .map(team => team.name);
-
-            const badge = '<span class="initiative-commitment-badge badge-pending">⚠ Pending Commitment</span>';
-            const teamList = uncommittedTeams.length > 0
-                ? '<br><small style="color: #666;">Waiting for: ' + uncommittedTeams.join(', ') + '</small>'
-                : '';
-            statusCell.innerHTML = badge + teamList;
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Pending Commitment</span>';
         }
         row.appendChild(statusCell);
+
+        // Uncommitted teams cell
+        const teamsCell = document.createElement('td');
+        const uncommittedTeams = appState.teams
+            .filter(team => initiative.teamStates[team.id] === 'uncommitted');
+
+        uncommittedTeams.forEach(team => {
+            const tag = document.createElement('span');
+            tag.className = 'team-tag-summary';
+            tag.textContent = team.name;
+            teamsCell.appendChild(tag);
+        });
+
+        if (uncommittedTeams.length === 0) {
+            teamsCell.innerHTML = '<span style="color: #999;">—</span>';
+        }
+
+        row.appendChild(teamsCell);
 
         tbody.appendChild(row);
     });
