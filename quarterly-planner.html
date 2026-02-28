@@ -4,6 +4,251 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quarterly Planning Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        #app {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+
+        .header h1 {
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .header-controls label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .header-controls input[type="text"],
+        .header-controls input[type="number"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .header-controls button {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .header-controls button:hover {
+            background: #2980b9;
+        }
+
+        #clearBtn {
+            background: #e74c3c;
+        }
+
+        #clearBtn:hover {
+            background: #c0392b;
+        }
+
+        .initiative-section,
+        .team-summary-section {
+            padding: 20px;
+        }
+
+        .initiative-section h2,
+        .team-summary-section h2 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            color: #2c3e50;
+        }
+
+        .initiative-row {
+            display: grid;
+            grid-template-columns: 200px 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            align-items: start;
+        }
+
+        .initiative-name-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .initiative-name-col input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .initiative-name-col button {
+            padding: 4px 8px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .initiative-commitment-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .badge-committed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .badge-pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .state-column {
+            min-height: 60px;
+            padding: 10px;
+            background: white;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+        }
+
+        .state-column.drag-over {
+            background: #e8f5e9;
+            border-color: #27ae60;
+        }
+
+        .state-column-header {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .team-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 4px;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .team-tag.dragging {
+            opacity: 0.5;
+        }
+
+        .add-btn {
+            padding: 10px 20px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .add-btn:hover {
+            background: #229954;
+        }
+
+        .team-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .team-column {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        .team-column-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .team-column-header.over-capacity {
+            color: #e74c3c;
+        }
+
+        .team-column-header.under-capacity {
+            color: #27ae60;
+        }
+
+        .initiative-tag {
+            display: block;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .initiative-tag.committed {
+            background: #3498db;
+            color: white;
+        }
+
+        .initiative-tag.uncommitted {
+            background: white;
+            border: 2px solid #3498db;
+            color: #3498db;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
