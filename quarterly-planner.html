@@ -85,11 +85,13 @@
         }
 
         .initiative-section,
+        .initiatives-summary-section,
         .team-summary-section {
             padding: 20px;
         }
 
         .initiative-section h2,
+        .initiatives-summary-section h2,
         .team-summary-section h2 {
             margin-bottom: 15px;
             font-size: 20px;
@@ -231,6 +233,35 @@
             background: #229954;
         }
 
+        .initiatives-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .initiatives-summary-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .initiatives-summary-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .initiatives-summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .initiatives-summary-table tr:hover {
+            background: #f9f9f9;
+        }
+
         .team-summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -304,6 +335,20 @@
             <h2>Initiatives</h2>
             <div id="initiativeList"></div>
             <button id="addInitiativeBtn" class="add-btn">+ Add Initiative</button>
+        </section>
+
+        <!-- Initiatives Summary -->
+        <section class="initiatives-summary-section">
+            <h2>Initiatives Summary</h2>
+            <table id="initiativesSummaryTable" class="initiatives-summary-table">
+                <thead>
+                    <tr>
+                        <th>Initiative Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="initiativesSummaryBody"></tbody>
+            </table>
         </section>
 
         <!-- Team Summary Panel -->
@@ -544,6 +589,7 @@ function render() {
     setupClearButton();
     setupAddInitiativeButton();
     renderInitiatives();
+    renderInitiativesSummary();
     renderTeamSummary();
 }
 
@@ -574,12 +620,7 @@ function createInitiativeRow(initiative) {
         saveToLocalStorage();
     });
 
-    const commitmentBadge = document.createElement('div');
-    commitmentBadge.className = 'initiative-commitment-badge';
-    updateCommitmentBadge(commitmentBadge, initiative);
-
     nameCol.appendChild(nameInput);
-    nameCol.appendChild(commitmentBadge);
 
     // State columns
     const uncommittedCol = createStateColumn('uncommitted', initiative);
@@ -761,6 +802,35 @@ function addInitiative() {
 function setupAddInitiativeButton() {
     const addBtn = document.getElementById('addInitiativeBtn');
     addBtn.addEventListener('click', addInitiative);
+}
+
+function renderInitiativesSummary() {
+    const tbody = document.getElementById('initiativesSummaryBody');
+    tbody.innerHTML = '';
+
+    appState.initiatives.forEach(initiative => {
+        const row = document.createElement('tr');
+
+        // Initiative name cell
+        const nameCell = document.createElement('td');
+        nameCell.textContent = initiative.name;
+        row.appendChild(nameCell);
+
+        // Status cell
+        const statusCell = document.createElement('td');
+        const allCommitted = Object.values(initiative.teamStates).every(
+            state => state === 'committed' || state === 'completed'
+        );
+
+        if (allCommitted) {
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ All Committed</span>';
+        } else {
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Pending Commitment</span>';
+        }
+        row.appendChild(statusCell);
+
+        tbody.appendChild(row);
+    });
 }
 
 function renderTeamSummary() {
