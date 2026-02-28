@@ -630,6 +630,9 @@ function createInitiativeRow(initiative) {
         initiative.name = e.target.value;
         saveToLocalStorage();
     });
+    nameInput.addEventListener('blur', () => {
+        render();
+    });
 
     nameCol.appendChild(nameInput);
 
