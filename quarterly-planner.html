@@ -225,6 +225,11 @@
             opacity: 0.5;
         }
 
+        .team-tag:focus {
+            outline: 3px solid #3498db;
+            outline-offset: 2px;
+        }
+
         .team-tag-summary {
             display: inline-block;
             padding: 4px 8px;
@@ -348,15 +353,15 @@
                 <h1>Quarterly Planning Tracker</h1>
                 <div class="header-controls">
                     <label>
-                        Quarter: <input type="text" id="quarterInput" placeholder="Q1 2026">
+                        Quarter: <input type="text" id="quarterInput" placeholder="Q1 2026" aria-label="Quarter name">
                     </label>
                     <label>
-                        Max Initiatives per Team: <input type="number" id="maxInitiativesInput" min="1" value="2">
+                        Max Initiatives per Team: <input type="number" id="maxInitiativesInput" min="1" value="2" aria-label="Maximum initiatives per team threshold">
                     </label>
-                    <button id="exportBtn">Export JSON</button>
-                    <button id="importBtn">Import JSON</button>
-                    <input type="file" id="importFile" accept=".json" style="display: none;">
-                    <button id="clearBtn">Clear All Data</button>
+                    <button id="exportBtn" aria-label="Export data as JSON file">Export JSON</button>
+                    <button id="importBtn" aria-label="Import data from JSON file">Import JSON</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" aria-label="Select JSON file to import">
+                    <button id="clearBtn" aria-label="Clear all data and reset to sample data">Clear All Data</button>
                 </div>
             </div>
         </header>
@@ -500,17 +505,25 @@ function loadFromLocalStorage() {
 }
 
 // Header control handlers
-function setupHeaderControls() {
+// Update header controls values (called from render)
+function updateHeaderControls() {
     const quarterInput = document.getElementById('quarterInput');
     const maxInitiativesInput = document.getElementById('maxInitiativesInput');
 
     quarterInput.value = appState.quarter;
     maxInitiativesInput.value = appState.maxInitiativesPerTeam;
+}
+
+// Initialize header controls event listeners (called once)
+function initializeHeaderControls() {
+    const quarterInput = document.getElementById('quarterInput');
+    const maxInitiativesInput = document.getElementById('maxInitiativesInput');
 
     quarterInput.addEventListener('input', (e) => {
         appState.quarter = e.target.value;
         saveToLocalStorage();
-        render();
+        // Only update quarter section title, no full render
+        document.getElementById('quarterSectionTitle').textContent = appState.quarter + ' Commitment';
     });
 
     maxInitiativesInput.addEventListener('change', (e) => {
@@ -537,8 +550,8 @@ function exportJSON() {
     URL.revokeObjectURL(url);
 }
 
-// Setup export button
-function setupExportButton() {
+// Initialize export button event listener (called once)
+function initializeExportButton() {
     const exportBtn = document.getElementById('exportBtn');
     exportBtn.addEventListener('click', exportJSON);
 }
@@ -592,7 +605,8 @@ function importJSON(file) {
 }
 
 // Setup import button
-function setupImportButton() {
+// Initialize import button event listener (called once)
+function initializeImportButton() {
     const importBtn = document.getElementById('importBtn');
     const importFile = document.getElementById('importFile');
 
@@ -623,7 +637,8 @@ function clearAllData() {
 }
 
 // Setup clear button
-function setupClearButton() {
+// Initialize clear button event listener (called once)
+function initializeClearButton() {
     const clearBtn = document.getElementById('clearBtn');
     clearBtn.addEventListener('click', clearAllData);
 }
@@ -645,6 +660,15 @@ function getTeamColor(teamId) {
     }
 }
 
+// Initialize all event listeners (called once on app load)
+function initializeEventListeners() {
+    initializeHeaderControls();
+    initializeExportButton();
+    initializeImportButton();
+    initializeClearButton();
+    initializeAddInitiativeButton();
+}
+
 // Initialize app
 function initializeApp() {
     const hasStoredData = loadFromLocalStorage();
@@ -652,16 +676,13 @@ function initializeApp() {
         initializeSampleData();
         saveToLocalStorage();
     }
+    initializeEventListeners();
     render();
 }
 
 function render() {
     console.log('Rendering with state:', appState);
-    setupHeaderControls();
-    setupExportButton();
-    setupImportButton();
-    setupClearButton();
-    setupAddInitiativeButton();
+    updateHeaderControls();
     renderInitiatives();
     renderInitiativesSummary();
     renderTeamSummary();
@@ -730,6 +751,7 @@ function createInitiativeRow(initiative) {
     const deleteBtn = document.createElement('button');
     deleteBtn.innerHTML = '×';
     deleteBtn.title = 'Delete initiative';
+    deleteBtn.setAttribute('aria-label', `Delete initiative: ${initiative.name}`);
     deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
 
     deleteCol.appendChild(deleteBtn);
@@ -774,14 +796,44 @@ function createTeamTag(team, initiativeId) {
     tag.className = 'team-tag';
     tag.textContent = team.name;
     tag.draggable = true;
+    tag.tabIndex = 0; // Make focusable for keyboard navigation
     tag.dataset.teamId = team.id;
     tag.dataset.initiativeId = initiativeId;
     tag.style.backgroundColor = getTeamColor(team.id);
 
+    // Get current state for ARIA label
+    const initiative = appState.initiatives.find(i => i.id === initiativeId);
+    const currentState = initiative ? initiative.teamStates[team.id] : 'uncommitted';
+    tag.setAttribute('role', 'button');
+    tag.setAttribute('aria-label', `${team.name} - ${currentState}. Press Enter or Space to cycle state.`);
+
     tag.addEventListener('dragstart', handleDragStart);
     tag.addEventListener('dragend', handleDragEnd);
 
+    // Keyboard navigation
+    tag.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            cycleTeamState(team.id, initiativeId);
+        }
+    });
+
     return tag;
+}
+
+// Cycle team state: uncommitted → committed → completed → uncommitted
+function cycleTeamState(teamId, initiativeId) {
+    const initiative = appState.initiatives.find(i => i.id === initiativeId);
+    if (!initiative) return;
+
+    const currentState = initiative.teamStates[teamId];
+    const states = ['uncommitted', 'committed', 'completed'];
+    const currentIndex = states.indexOf(currentState);
+    const nextIndex = (currentIndex + 1) % states.length;
+
+    initiative.teamStates[teamId] = states[nextIndex];
+    saveToLocalStorage();
+    render();
 }
 
 function updateCommitmentBadge(badge, initiative) {
@@ -897,7 +949,8 @@ function addInitiative() {
     render();
 }
 
-function setupAddInitiativeButton() {
+// Initialize add initiative button event listener (called once)
+function initializeAddInitiativeButton() {
     const addBtn = document.getElementById('addInitiativeBtn');
     addBtn.addEventListener('click', addInitiative);
 }
@@ -963,6 +1016,7 @@ function renderInitiativesSummary() {
         etaInput.className = 'eta-input';
         etaInput.value = initiative.eta || '';
         etaInput.placeholder = 'Enter ETA';
+        etaInput.setAttribute('aria-label', `ETA for ${initiative.name}`);
         etaInput.addEventListener('input', (e) => {
             initiative.eta = e.target.value;
             saveToLocalStorage();
