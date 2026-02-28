@@ -213,8 +213,8 @@
             display: inline-block;
             padding: 4px 8px;
             margin: 4px;
-            background: #3498db;
             color: white;
+            /* Background color will be set dynamically based on team capacity */
             border-radius: 4px;
             font-size: 13px;
             cursor: move;
@@ -229,10 +229,10 @@
             display: inline-block;
             padding: 4px 8px;
             margin: 2px;
-            background: #e74c3c;
             color: white;
             border-radius: 4px;
             font-size: 12px;
+            /* Background color will be set dynamically based on team capacity */
         }
 
         .eta-input {
@@ -628,6 +628,23 @@ function setupClearButton() {
     clearBtn.addEventListener('click', clearAllData);
 }
 
+// Get team color based on committed initiatives count
+function getTeamColor(teamId) {
+    const committedCount = appState.initiatives.filter(initiative =>
+        initiative.teamStates[teamId] === 'committed'
+    ).length;
+
+    const threshold = appState.maxInitiativesPerTeam;
+
+    if (committedCount >= threshold) {
+        return '#e74c3c'; // Red: at/over capacity
+    } else if (committedCount > 0) {
+        return '#f39c12'; // Yellow: some commitments, has room
+    } else {
+        return '#27ae60'; // Green: no commitments, fully available
+    }
+}
+
 // Initialize app
 function initializeApp() {
     const hasStoredData = loadFromLocalStorage();
@@ -759,6 +776,7 @@ function createTeamTag(team, initiativeId) {
     tag.draggable = true;
     tag.dataset.teamId = team.id;
     tag.dataset.initiativeId = initiativeId;
+    tag.style.backgroundColor = getTeamColor(team.id);
 
     tag.addEventListener('dragstart', handleDragStart);
     tag.addEventListener('dragend', handleDragEnd);
@@ -933,6 +951,7 @@ function renderInitiativesSummary() {
             const tag = document.createElement('span');
             tag.className = 'team-tag-summary';
             tag.textContent = team.name;
+            tag.style.backgroundColor = getTeamColor(team.id);
             teamsCell.appendChild(tag);
         });
         row.appendChild(teamsCell);
@@ -987,6 +1006,7 @@ function renderInitiativesSummary() {
             const tag = document.createElement('span');
             tag.className = 'team-tag-summary';
             tag.textContent = team.name;
+            tag.style.backgroundColor = getTeamColor(team.id);
             teamsCell.appendChild(tag);
         });
 
@@ -1008,6 +1028,7 @@ function renderTeamSummary() {
 function createTeamColumn(team) {
     const column = document.createElement('div');
     column.className = 'team-column';
+    column.style.borderLeft = `5px solid ${getTeamColor(team.id)}`;
 
     // Calculate committed count
     const committedCount = appState.initiatives.filter(
