@@ -504,6 +504,7 @@ function render() {
     setupExportButton();
     setupImportButton();
     setupClearButton();
+    setupAddInitiativeButton();
     renderInitiatives();
     renderTeamSummary();
 }
@@ -692,6 +693,28 @@ function deleteInitiative(initiativeId) {
     appState.initiatives = appState.initiatives.filter(i => i.id !== initiativeId);
     saveToLocalStorage();
     render();
+}
+
+function addInitiative() {
+    const newInitiative = {
+        id: generateId('init'),
+        name: 'New Initiative',
+        teamStates: {}
+    };
+
+    // Initialize all teams as uncommitted
+    appState.teams.forEach(team => {
+        newInitiative.teamStates[team.id] = 'uncommitted';
+    });
+
+    appState.initiatives.push(newInitiative);
+    saveToLocalStorage();
+    render();
+}
+
+function setupAddInitiativeButton() {
+    const addBtn = document.getElementById('addInitiativeBtn');
+    addBtn.addEventListener('click', addInitiative);
 }
 
 function renderTeamSummary() {
