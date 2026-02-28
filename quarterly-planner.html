@@ -825,7 +825,16 @@ function renderInitiativesSummary() {
         if (allCommitted) {
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ All Committed</span>';
         } else {
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Pending Commitment</span>';
+            // Find uncommitted teams
+            const uncommittedTeams = appState.teams
+                .filter(team => initiative.teamStates[team.id] === 'uncommitted')
+                .map(team => team.name);
+
+            const badge = '<span class="initiative-commitment-badge badge-pending">⚠ Pending Commitment</span>';
+            const teamList = uncommittedTeams.length > 0
+                ? '<br><small style="color: #666;">Waiting for: ' + uncommittedTeams.join(', ') + '</small>'
+                : '';
+            statusCell.innerHTML = badge + teamList;
         }
         row.appendChild(statusCell);
 
