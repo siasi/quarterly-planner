@@ -362,7 +362,7 @@
 
         <!-- Quarter Committed Initiatives -->
         <section class="quarter-section">
-            <h2 id="quarterSectionTitle">Q1 2026</h2>
+            <h2 id="quarterSectionTitle">Q1 2026 Commitment</h2>
             <table id="quarterTable" class="initiatives-summary-table">
                 <thead>
                     <tr>
@@ -860,7 +860,7 @@ function setupAddInitiativeButton() {
 function renderInitiativesSummary() {
     // Update quarter section title
     const quarterTitle = document.getElementById('quarterSectionTitle');
-    quarterTitle.textContent = appState.quarter;
+    quarterTitle.textContent = appState.quarter + ' Commitment';
 
     // Get table bodies
     const quarterBody = document.getElementById('quarterBody');
