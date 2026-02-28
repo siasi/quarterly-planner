@@ -358,10 +358,23 @@
             <div id="teamSummary" class="team-summary-grid"></div>
         </section>
 
-        <!-- Initiatives Summary -->
-        <section class="initiatives-summary-section">
-            <h2>Initiatives Summary</h2>
-            <table id="initiativesSummaryTable" class="initiatives-summary-table">
+        <!-- Quarter Committed Initiatives -->
+        <section class="quarter-section">
+            <h2 id="quarterSectionTitle">Q1 2026</h2>
+            <table id="quarterTable" class="initiatives-summary-table">
+                <thead>
+                    <tr>
+                        <th>Initiative Name</th>
+                    </tr>
+                </thead>
+                <tbody id="quarterBody"></tbody>
+            </table>
+        </section>
+
+        <!-- Next (Uncommitted Initiatives) -->
+        <section class="next-section">
+            <h2>Next</h2>
+            <table id="nextTable" class="initiatives-summary-table">
                 <thead>
                     <tr>
                         <th>Initiative Name</th>
@@ -369,7 +382,7 @@
                         <th>Waiting for...</th>
                     </tr>
                 </thead>
-                <tbody id="initiativesSummaryBody"></tbody>
+                <tbody id="nextBody"></tbody>
             </table>
         </section>
     </div>
@@ -843,10 +856,44 @@ function setupAddInitiativeButton() {
 }
 
 function renderInitiativesSummary() {
-    const tbody = document.getElementById('initiativesSummaryBody');
-    tbody.innerHTML = '';
+    // Update quarter section title
+    const quarterTitle = document.getElementById('quarterSectionTitle');
+    quarterTitle.textContent = appState.quarter;
+
+    // Get table bodies
+    const quarterBody = document.getElementById('quarterBody');
+    const nextBody = document.getElementById('nextBody');
+    quarterBody.innerHTML = '';
+    nextBody.innerHTML = '';
+
+    // Split initiatives into committed and uncommitted
+    const committedInitiatives = [];
+    const uncommittedInitiatives = [];
 
     appState.initiatives.forEach(initiative => {
+        const states = Object.values(initiative.teamStates);
+        const hasUncommitted = states.some(state => state === 'uncommitted');
+
+        if (!hasUncommitted) {
+            // All teams committed or completed - goes to quarter section
+            committedInitiatives.push(initiative);
+        } else {
+            // At least one team uncommitted - goes to next section
+            uncommittedInitiatives.push(initiative);
+        }
+    });
+
+    // Render committed initiatives (quarter section)
+    committedInitiatives.forEach(initiative => {
+        const row = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        nameCell.textContent = initiative.name;
+        row.appendChild(nameCell);
+        quarterBody.appendChild(row);
+    });
+
+    // Render uncommitted initiatives (next section)
+    uncommittedInitiatives.forEach(initiative => {
         const row = document.createElement('tr');
 
         // Initiative name cell
@@ -857,14 +904,10 @@ function renderInitiativesSummary() {
         // Status cell with traffic light system
         const statusCell = document.createElement('td');
         const states = Object.values(initiative.teamStates);
-        const hasUncommitted = states.some(state => state === 'uncommitted');
         const hasCommitted = states.some(state => state === 'committed');
         const hasCompleted = states.some(state => state === 'completed');
 
-        if (!hasUncommitted) {
-            // Green: All teams committed or completed
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ All Committed</span>';
-        } else if (hasCommitted || hasCompleted) {
+        if (hasCommitted || hasCompleted) {
             // Yellow: Some uncommitted, but some committed/completed
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Partially Committed</span>';
         } else {
@@ -885,13 +928,8 @@ function renderInitiativesSummary() {
             teamsCell.appendChild(tag);
         });
 
-        if (uncommittedTeams.length === 0) {
-            teamsCell.innerHTML = '<span style="color: #999;">—</span>';
-        }
-
         row.appendChild(teamsCell);
-
-        tbody.appendChild(row);
+        nextBody.appendChild(row);
     });
 }
 
