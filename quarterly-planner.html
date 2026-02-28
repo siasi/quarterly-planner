@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quarterly Planning Tracker</title>
+</head>
+<body>
+    <div id="app">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Quarterly Planning Tracker</h1>
+                <div class="header-controls">
+                    <label>
+                        Quarter: <input type="text" id="quarterInput" placeholder="Q1 2026">
+                    </label>
+                    <label>
+                        Max Initiatives per Team: <input type="number" id="maxInitiativesInput" min="1" value="5">
+                    </label>
+                    <button id="exportBtn">Export JSON</button>
+                    <button id="importBtn">Import JSON</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button id="clearBtn">Clear All Data</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Initiative List -->
+        <section class="initiative-section">
+            <h2>Initiatives</h2>
+            <div id="initiativeList"></div>
+            <button id="addInitiativeBtn" class="add-btn">+ Add Initiative</button>
+        </section>
+
+        <!-- Team Summary Panel -->
+        <section class="team-summary-section">
+            <h2>Team Summary</h2>
+            <div id="teamSummary" class="team-summary-grid"></div>
+        </section>
+    </div>
+</body>
+</html>
