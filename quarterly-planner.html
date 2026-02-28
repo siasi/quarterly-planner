@@ -335,7 +335,7 @@
                         Quarter: <input type="text" id="quarterInput" placeholder="Q1 2026">
                     </label>
                     <label>
-                        Max Initiatives per Team: <input type="number" id="maxInitiativesInput" min="1" value="5">
+                        Max Initiatives per Team: <input type="number" id="maxInitiativesInput" min="1" value="2">
                     </label>
                     <button id="exportBtn">Export JSON</button>
                     <button id="importBtn">Import JSON</button>
@@ -352,6 +352,12 @@
             <button id="addInitiativeBtn" class="add-btn">+ Add Initiative</button>
         </section>
 
+        <!-- Team Summary Panel -->
+        <section class="team-summary-section">
+            <h2>Team Summary</h2>
+            <div id="teamSummary" class="team-summary-grid"></div>
+        </section>
+
         <!-- Initiatives Summary -->
         <section class="initiatives-summary-section">
             <h2>Initiatives Summary</h2>
@@ -366,19 +372,13 @@
                 <tbody id="initiativesSummaryBody"></tbody>
             </table>
         </section>
-
-        <!-- Team Summary Panel -->
-        <section class="team-summary-section">
-            <h2>Team Summary</h2>
-            <div id="teamSummary" class="team-summary-grid"></div>
-        </section>
     </div>
 
 <script>
 // Data Model
 let appState = {
     quarter: 'Q1 2026',
-    maxInitiativesPerTeam: 5,
+    maxInitiativesPerTeam: 2,
     teams: [],
     initiatives: []
 };
@@ -393,7 +393,7 @@ function generateId(prefix) {
 function initializeSampleData() {
     appState = {
         quarter: 'Q1 2026',
-        maxInitiativesPerTeam: 5,
+        maxInitiativesPerTeam: 2,
         teams: [
             { id: generateId('team'), name: 'Backend Team' },
             { id: generateId('team'), name: 'Frontend Team' },
@@ -530,7 +530,7 @@ function importJSON(file) {
 
             // Validate maxInitiativesPerTeam
             if (typeof imported.maxInitiativesPerTeam !== 'number' || imported.maxInitiativesPerTeam < 1) {
-                imported.maxInitiativesPerTeam = 5; // Default
+                imported.maxInitiativesPerTeam = 2; // Default
             }
 
             // Confirm before replacing
