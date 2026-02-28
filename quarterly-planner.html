@@ -397,6 +397,97 @@ function setupHeaderControls() {
     });
 }
 
+// Export functionality
+function exportJSON() {
+    const dataStr = JSON.stringify(appState, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const filename = `quarterly-planning-${appState.quarter.replace(/\s+/g, '-')}.json`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Setup export button
+function setupExportButton() {
+    const exportBtn = document.getElementById('exportBtn');
+    exportBtn.addEventListener('click', exportJSON);
+}
+
+// Import functionality
+function importJSON(file) {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const imported = JSON.parse(e.target.result);
+
+            // Validate structure
+            if (!imported.quarter || !imported.teams || !imported.initiatives) {
+                alert('Invalid JSON file: missing required fields (quarter, teams, initiatives)');
+                return;
+            }
+
+            // Confirm before replacing
+            if (!confirm('This will replace all current data. Continue?')) {
+                return;
+            }
+
+            appState = imported;
+            saveToLocalStorage();
+            render();
+            alert('Data imported successfully!');
+        } catch (error) {
+            alert('Failed to import JSON: ' + error.message);
+        }
+    };
+
+    reader.readAsText(file);
+}
+
+// Setup import button
+function setupImportButton() {
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+
+    importBtn.addEventListener('click', () => {
+        importFile.click();
+    });
+
+    importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            importJSON(file);
+        }
+        // Reset file input
+        e.target.value = '';
+    });
+}
+
+// Clear all data
+function clearAllData() {
+    if (!confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+        return;
+    }
+
+    initializeSampleData();
+    saveToLocalStorage();
+    render();
+    alert('All data cleared and reset to sample data.');
+}
+
+// Setup clear button
+function setupClearButton() {
+    const clearBtn = document.getElementById('clearBtn');
+    clearBtn.addEventListener('click', clearAllData);
+}
+
 // Initialize app
 function initializeApp() {
     const hasStoredData = loadFromLocalStorage();
@@ -410,6 +501,9 @@ function initializeApp() {
 function render() {
     console.log('Rendering with state:', appState);
     setupHeaderControls();
+    setupExportButton();
+    setupImportButton();
+    setupClearButton();
     renderInitiatives();
     renderTeamSummary();
 }
