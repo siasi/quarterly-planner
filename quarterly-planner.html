@@ -235,6 +235,20 @@
             font-size: 12px;
         }
 
+        .eta-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .eta-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
         .add-btn {
             padding: 10px 20px;
             background: #27ae60;
@@ -367,6 +381,8 @@
                 <thead>
                     <tr>
                         <th>Initiative Name</th>
+                        <th>Contributing Teams</th>
+                        <th>ETA</th>
                     </tr>
                 </thead>
                 <tbody id="quarterBody"></tbody>
@@ -419,17 +435,20 @@ function initializeSampleData() {
             {
                 id: generateId('init'),
                 name: 'Customer Dashboard Redesign',
-                teamStates: {}
+                teamStates: {},
+                eta: ''
             },
             {
                 id: generateId('init'),
                 name: 'Payment Integration',
-                teamStates: {}
+                teamStates: {},
+                eta: ''
             },
             {
                 id: generateId('init'),
                 name: 'Mobile App Performance',
-                teamStates: {}
+                teamStates: {},
+                eta: ''
             }
         ]
     };
@@ -547,6 +566,13 @@ function importJSON(file) {
             if (typeof imported.maxInitiativesPerTeam !== 'number' || imported.maxInitiativesPerTeam < 1) {
                 imported.maxInitiativesPerTeam = 2; // Default
             }
+
+            // Ensure all initiatives have eta field
+            imported.initiatives.forEach(initiative => {
+                if (!initiative.eta) {
+                    initiative.eta = '';
+                }
+            });
 
             // Confirm before replacing
             if (!confirm('This will replace all current data. Continue?')) {
@@ -839,7 +865,8 @@ function addInitiative() {
     const newInitiative = {
         id: generateId('init'),
         name: 'New Initiative',
-        teamStates: {}
+        teamStates: {},
+        eta: ''
     };
 
     // Initialize all teams as uncommitted
@@ -888,9 +915,42 @@ function renderInitiativesSummary() {
     // Render committed initiatives (quarter section)
     committedInitiatives.forEach(initiative => {
         const row = document.createElement('tr');
+
+        // Initiative name cell
         const nameCell = document.createElement('td');
         nameCell.textContent = initiative.name;
         row.appendChild(nameCell);
+
+        // Contributing teams cell
+        const teamsCell = document.createElement('td');
+        const contributingTeams = appState.teams
+            .filter(team => {
+                const state = initiative.teamStates[team.id];
+                return state === 'committed' || state === 'completed';
+            });
+
+        contributingTeams.forEach(team => {
+            const tag = document.createElement('span');
+            tag.className = 'team-tag-summary';
+            tag.textContent = team.name;
+            teamsCell.appendChild(tag);
+        });
+        row.appendChild(teamsCell);
+
+        // ETA cell with editable input
+        const etaCell = document.createElement('td');
+        const etaInput = document.createElement('input');
+        etaInput.type = 'text';
+        etaInput.className = 'eta-input';
+        etaInput.value = initiative.eta || '';
+        etaInput.placeholder = 'Enter ETA';
+        etaInput.addEventListener('input', (e) => {
+            initiative.eta = e.target.value;
+            saveToLocalStorage();
+        });
+        etaCell.appendChild(etaInput);
+        row.appendChild(etaCell);
+
         quarterBody.appendChild(row);
     });
 
