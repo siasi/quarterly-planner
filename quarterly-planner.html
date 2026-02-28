@@ -295,8 +295,9 @@ let appState = {
 };
 
 // Generate unique IDs
+let idCounter = 0;
 function generateId(prefix) {
-    return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${prefix}-${Date.now()}-${idCounter++}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 // Initialize with sample data
@@ -354,8 +355,19 @@ function loadFromLocalStorage() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
         try {
-            appState = JSON.parse(stored);
-            return true;
+            const parsed = JSON.parse(stored);
+            // Validate structure
+            if (parsed &&
+                typeof parsed.quarter === 'string' &&
+                typeof parsed.maxInitiativesPerTeam === 'number' &&
+                Array.isArray(parsed.teams) &&
+                Array.isArray(parsed.initiatives)) {
+                appState = parsed;
+                return true;
+            } else {
+                console.warn('Invalid data structure in localStorage, using sample data');
+                return false;
+            }
         } catch (e) {
             console.error('Failed to parse localStorage data:', e);
             return false;
