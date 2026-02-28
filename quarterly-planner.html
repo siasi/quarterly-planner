@@ -434,6 +434,16 @@ function importJSON(file) {
                 return;
             }
 
+            if (!Array.isArray(imported.teams) || !Array.isArray(imported.initiatives)) {
+                alert('Invalid JSON file: teams and initiatives must be arrays');
+                return;
+            }
+
+            // Validate maxInitiativesPerTeam
+            if (typeof imported.maxInitiativesPerTeam !== 'number' || imported.maxInitiativesPerTeam < 1) {
+                imported.maxInitiativesPerTeam = 5; // Default
+            }
+
             // Confirm before replacing
             if (!confirm('This will replace all current data. Continue?')) {
                 return;
@@ -574,7 +584,8 @@ function createStateColumn(state, initiative) {
 
     // Add team tags for this state
     appState.teams.forEach(team => {
-        if (initiative.teamStates[team.id] === state) {
+        // Defensive check: ensure teamStates exists and has this team
+        if (initiative.teamStates && initiative.teamStates[team.id] === state) {
             const tag = createTeamTag(team, initiative.id);
             col.appendChild(tag);
         }
