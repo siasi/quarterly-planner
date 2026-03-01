@@ -609,7 +609,8 @@ function generateId(prefix) {
     return `${prefix}-${Date.now()}-${idCounter++}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-// Initialize with sample data
+// === SAMPLE DATA ===
+
 function initializeSampleData() {
     appState = {
         quarter: 'Q1 2026',
@@ -656,7 +657,7 @@ function initializeSampleData() {
     appState.initiatives[2].teamStates[appState.teams[2].id] = TEAM_STATES.COMPLETED;
 }
 
-// === LOCAL STORAGE ===
+// === STORAGE & PERSISTENCE ===
 
 function saveToLocalStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -687,7 +688,8 @@ function loadFromLocalStorage() {
     return false;
 }
 
-// Header control handlers
+// === UI CONTROLS ===
+
 // Update header controls values (called from render)
 function updateHeaderControls() {
     const quarterInput = document.getElementById('quarterInput');
@@ -915,6 +917,8 @@ function getTeamColor(teamId, colorCache = null) {
     return colorCache?.[teamId] || getTeamColorDirect(teamId);
 }
 
+// === INITIALIZATION ===
+
 // Initialize all event listeners (called once on app load)
 function initializeEventListeners() {
     initializeHeaderControls();
@@ -934,6 +938,8 @@ function initializeApp() {
     initializeEventListeners();
     render();
 }
+
+// === RENDERING FUNCTIONS ===
 
 function render() {
     console.log('Rendering with state:', appState);
@@ -1170,6 +1176,8 @@ function updateCommitmentBadge(badge, initiative) {
         badge.className = 'initiative-commitment-badge badge-pending';
     }
 }
+
+// === DRAG AND DROP HANDLERS ===
 
 let draggedElement = null;
 let draggedRow = null;
