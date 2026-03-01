@@ -506,7 +506,44 @@
     </div>
 
 <script>
-// Data Model
+// === CONSTANTS ===
+
+// Color Palette
+const COLORS = {
+    RED: '#e74c3c',
+    YELLOW: '#f39c12',
+    GREEN: '#27ae60',
+    BLUE: '#3498db',
+    DARK_GRAY: '#2c3e50',
+    GRAY: '#95a5a6',
+    DARK_BLUE: '#2980b9',
+    DARK_RED: '#c0392b'
+};
+
+// Team State Values
+const TEAM_STATES = {
+    UNCOMMITTED: 'uncommitted',
+    COMMITTED: 'committed',
+    COMPLETED: 'completed',
+    NOT_APPLICABLE: 'not-applicable'
+};
+
+// State Cycle for Keyboard Navigation
+const STATE_CYCLE = [
+    TEAM_STATES.UNCOMMITTED,
+    TEAM_STATES.COMMITTED,
+    TEAM_STATES.COMPLETED
+];
+
+// Storage and ID Configuration
+const STORAGE_KEY = 'quarterly-planning-data';
+const ID_PREFIXES = {
+    TEAM: 'team',
+    INITIATIVE: 'init'
+};
+
+// === DATA MODEL ===
+
 let appState = {
     quarter: 'Q1 2026',
     maxInitiativesPerTeam: 2,
@@ -526,26 +563,26 @@ function initializeSampleData() {
         quarter: 'Q1 2026',
         maxInitiativesPerTeam: 2,
         teams: [
-            { id: generateId('team'), name: 'Backend Team' },
-            { id: generateId('team'), name: 'Frontend Team' },
-            { id: generateId('team'), name: 'Mobile Team' },
-            { id: generateId('team'), name: 'DevOps Team' }
+            { id: generateId(ID_PREFIXES.TEAM), name: 'Backend Team' },
+            { id: generateId(ID_PREFIXES.TEAM), name: 'Frontend Team' },
+            { id: generateId(ID_PREFIXES.TEAM), name: 'Mobile Team' },
+            { id: generateId(ID_PREFIXES.TEAM), name: 'DevOps Team' }
         ],
         initiatives: [
             {
-                id: generateId('init'),
+                id: generateId(ID_PREFIXES.INITIATIVE),
                 name: 'Customer Dashboard Redesign',
                 teamStates: {},
                 eta: ''
             },
             {
-                id: generateId('init'),
+                id: generateId(ID_PREFIXES.INITIATIVE),
                 name: 'Payment Integration',
                 teamStates: {},
                 eta: ''
             },
             {
-                id: generateId('init'),
+                id: generateId(ID_PREFIXES.INITIATIVE),
                 name: 'Mobile App Performance',
                 teamStates: {},
                 eta: ''
@@ -556,19 +593,18 @@ function initializeSampleData() {
     // Initialize all team states as uncommitted for all initiatives
     appState.initiatives.forEach(initiative => {
         appState.teams.forEach(team => {
-            initiative.teamStates[team.id] = 'uncommitted';
+            initiative.teamStates[team.id] = TEAM_STATES.UNCOMMITTED;
         });
     });
 
     // Set some example states
-    appState.initiatives[0].teamStates[appState.teams[0].id] = 'committed';
-    appState.initiatives[0].teamStates[appState.teams[1].id] = 'committed';
-    appState.initiatives[1].teamStates[appState.teams[0].id] = 'committed';
-    appState.initiatives[2].teamStates[appState.teams[2].id] = 'completed';
+    appState.initiatives[0].teamStates[appState.teams[0].id] = TEAM_STATES.COMMITTED;
+    appState.initiatives[0].teamStates[appState.teams[1].id] = TEAM_STATES.COMMITTED;
+    appState.initiatives[1].teamStates[appState.teams[0].id] = TEAM_STATES.COMMITTED;
+    appState.initiatives[2].teamStates[appState.teams[2].id] = TEAM_STATES.COMPLETED;
 }
 
-// localStorage management
-const STORAGE_KEY = 'quarterly-planning-data';
+// === LOCAL STORAGE ===
 
 function saveToLocalStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -701,7 +737,7 @@ function importJSON(file) {
                 // Add missing team states for new teams (set to uncommitted)
                 imported.teams.forEach(team => {
                     if (!initiative.teamStates[team.id]) {
-                        initiative.teamStates[team.id] = 'uncommitted';
+                        initiative.teamStates[team.id] = TEAM_STATES.UNCOMMITTED;
                     }
                 });
             });
@@ -769,15 +805,15 @@ function calculateTeamColors() {
 
     appState.teams.forEach(team => {
         const committedCount = appState.initiatives.filter(initiative =>
-            initiative.teamStates[team.id] === 'committed'
+            initiative.teamStates[team.id] === TEAM_STATES.COMMITTED
         ).length;
 
         if (committedCount >= threshold) {
-            cache[team.id] = '#e74c3c'; // Red: at/over capacity
+            cache[team.id] = COLORS.RED; // Red: at/over capacity
         } else if (committedCount > 0) {
-            cache[team.id] = '#f39c12'; // Yellow: some commitments, has room
+            cache[team.id] = COLORS.YELLOW; // Yellow: some commitments, has room
         } else {
-            cache[team.id] = '#27ae60'; // Green: no commitments, fully available
+            cache[team.id] = COLORS.GREEN; // Green: no commitments, fully available
         }
     });
 
@@ -792,17 +828,17 @@ function getTeamColor(teamId, colorCache = null) {
 
     // Fallback: direct calculation (for backward compatibility)
     const committedCount = appState.initiatives.filter(initiative =>
-        initiative.teamStates[teamId] === 'committed'
+        initiative.teamStates[teamId] === TEAM_STATES.COMMITTED
     ).length;
 
     const threshold = appState.maxInitiativesPerTeam;
 
     if (committedCount >= threshold) {
-        return '#e74c3c'; // Red: at/over capacity
+        return COLORS.RED; // Red: at/over capacity
     } else if (committedCount > 0) {
-        return '#f39c12'; // Yellow: some commitments, has room
+        return COLORS.YELLOW; // Yellow: some commitments, has room
     } else {
-        return '#27ae60'; // Green: no commitments, fully available
+        return COLORS.GREEN; // Green: no commitments, fully available
     }
 }
 
@@ -849,17 +885,17 @@ function renderInitiatives(teamColorCache) {
 function getInitiativeStatusColor(initiative) {
     // Filter out N/A teams, only consider active team states
     const activeStates = Object.values(initiative.teamStates)
-        .filter(state => state !== 'not-applicable');
-    const hasUncommitted = activeStates.some(state => state === 'uncommitted');
-    const hasCommitted = activeStates.some(state => state === 'committed');
-    const hasCompleted = activeStates.some(state => state === 'completed');
+        .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+    const hasUncommitted = activeStates.some(state => state === TEAM_STATES.UNCOMMITTED);
+    const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
+    const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
     if (!hasUncommitted) {
-        return '#27ae60'; // Green: All active teams committed
+        return COLORS.GREEN; // Green: All active teams committed
     } else if (hasCommitted || hasCompleted) {
-        return '#f39c12'; // Yellow: Partially committed
+        return COLORS.YELLOW; // Yellow: Partially committed
     } else {
-        return '#e74c3c'; // Red: Not started
+        return COLORS.RED; // Red: Not started
     }
 }
 
@@ -926,10 +962,10 @@ function createInitiativeRow(initiative, teamColorCache) {
     body.className = 'initiative-body';
 
     // State columns
-    const uncommittedCol = createStateColumn('uncommitted', initiative, teamColorCache);
-    const committedCol = createStateColumn('committed', initiative, teamColorCache);
-    const completedCol = createStateColumn('completed', initiative, teamColorCache);
-    const naCol = createStateColumn('not-applicable', initiative, teamColorCache);
+    const uncommittedCol = createStateColumn(TEAM_STATES.UNCOMMITTED, initiative, teamColorCache);
+    const committedCol = createStateColumn(TEAM_STATES.COMMITTED, initiative, teamColorCache);
+    const completedCol = createStateColumn(TEAM_STATES.COMPLETED, initiative, teamColorCache);
+    const naCol = createStateColumn(TEAM_STATES.NOT_APPLICABLE, initiative, teamColorCache);
 
     body.appendChild(uncommittedCol);
     body.appendChild(committedCol);
@@ -952,7 +988,7 @@ function createStateColumn(state, initiative, teamColorCache) {
     const header = document.createElement('div');
     header.className = 'state-column-header';
     // Display "N/A" for not-applicable state
-    header.textContent = state === 'not-applicable' ? 'N/A' : state.charAt(0).toUpperCase() + state.slice(1);
+    header.textContent = state === TEAM_STATES.NOT_APPLICABLE ? 'N/A' : state.charAt(0).toUpperCase() + state.slice(1);
     col.appendChild(header);
 
     // Add team tags for this state
@@ -1006,18 +1042,17 @@ function cycleTeamState(teamId, initiativeId) {
     if (!initiative) return;
 
     const currentState = initiative.teamStates[teamId];
-    const states = ['uncommitted', 'committed', 'completed'];
-    const currentIndex = states.indexOf(currentState);
-    const nextIndex = (currentIndex + 1) % states.length;
+    const currentIndex = STATE_CYCLE.indexOf(currentState);
+    const nextIndex = (currentIndex + 1) % STATE_CYCLE.length;
 
-    initiative.teamStates[teamId] = states[nextIndex];
+    initiative.teamStates[teamId] = STATE_CYCLE[nextIndex];
     saveToLocalStorage();
     render();
 }
 
 function updateCommitmentBadge(badge, initiative) {
     const allCommitted = Object.values(initiative.teamStates).every(
-        state => state === 'committed' || state === 'completed'
+        state => state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED
     );
 
     if (allCommitted) {
@@ -1190,7 +1225,7 @@ function deleteInitiative(initiativeId) {
 
 function addInitiative() {
     const newInitiative = {
-        id: generateId('init'),
+        id: generateId(ID_PREFIXES.INITIATIVE),
         name: 'New Initiative',
         teamStates: {},
         eta: ''
@@ -1198,7 +1233,7 @@ function addInitiative() {
 
     // Initialize all teams as uncommitted
     appState.teams.forEach(team => {
-        newInitiative.teamStates[team.id] = 'uncommitted';
+        newInitiative.teamStates[team.id] = TEAM_STATES.UNCOMMITTED;
     });
 
     appState.initiatives.push(newInitiative);
@@ -1230,8 +1265,8 @@ function renderInitiativesSummary(teamColorCache) {
     appState.initiatives.forEach(initiative => {
         // Filter out N/A teams (not-applicable), only consider active team states
         const activeStates = Object.values(initiative.teamStates)
-            .filter(state => state !== 'not-applicable');
-        const hasUncommitted = activeStates.some(state => state === 'uncommitted');
+            .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+        const hasUncommitted = activeStates.some(state => state === TEAM_STATES.UNCOMMITTED);
 
         if (!hasUncommitted) {
             // All active teams committed or completed - goes to quarter section
@@ -1256,7 +1291,7 @@ function renderInitiativesSummary(teamColorCache) {
         const contributingTeams = appState.teams
             .filter(team => {
                 const state = initiative.teamStates[team.id];
-                return state === 'committed' || state === 'completed';
+                return state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED;
             });
 
         contributingTeams.forEach(team => {
@@ -1298,9 +1333,9 @@ function renderInitiativesSummary(teamColorCache) {
         // Status cell with traffic light system (ignore N/A teams)
         const statusCell = document.createElement('td');
         const activeStates = Object.values(initiative.teamStates)
-            .filter(state => state !== 'not-applicable');
-        const hasCommitted = activeStates.some(state => state === 'committed');
-        const hasCompleted = activeStates.some(state => state === 'completed');
+            .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+        const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
+        const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
         if (hasCommitted || hasCompleted) {
             // Green: Some teams committed/completed, work can proceed
@@ -1314,7 +1349,7 @@ function renderInitiativesSummary(teamColorCache) {
         // Uncommitted teams cell
         const teamsCell = document.createElement('td');
         const uncommittedTeams = appState.teams
-            .filter(team => initiative.teamStates[team.id] === 'uncommitted');
+            .filter(team => initiative.teamStates[team.id] === TEAM_STATES.UNCOMMITTED);
 
         uncommittedTeams.forEach(team => {
             const tag = document.createElement('span');
@@ -1346,7 +1381,7 @@ function createTeamColumn(team, teamColorCache) {
 
     // Calculate committed count
     const committedCount = appState.initiatives.filter(
-        initiative => initiative.teamStates[team.id] === 'committed'
+        initiative => initiative.teamStates[team.id] === TEAM_STATES.COMMITTED
     ).length;
 
     // Create header with capacity indicator
@@ -1371,7 +1406,7 @@ function createTeamColumn(team, teamColorCache) {
     // Add initiative tags for committed and uncommitted states
     appState.initiatives.forEach(initiative => {
         const state = initiative.teamStates[team.id];
-        if (state === 'committed' || state === 'uncommitted') {
+        if (state === TEAM_STATES.COMMITTED || state === TEAM_STATES.UNCOMMITTED) {
             const tag = createInitiativeTag(initiative, state);
             column.appendChild(tag);
         }
