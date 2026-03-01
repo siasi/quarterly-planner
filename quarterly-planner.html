@@ -1096,11 +1096,11 @@ function renderInitiativesSummary(teamColorCache) {
         const hasCompleted = states.some(state => state === 'completed');
 
         if (hasCommitted || hasCompleted) {
-            // Yellow: Some uncommitted, but some committed/completed
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-pending">⚠ Partially Committed</span>';
+            // Green: Some teams committed/completed, work can proceed
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ Can Proceed</span>';
         } else {
-            // Red: All uncommitted, none committed, none completed
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked">✕ Not Started</span>';
+            // Red: All teams uncommitted, initiative is blocked
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked">⏸ Blocked</span>';
         }
         row.appendChild(statusCell);
 
