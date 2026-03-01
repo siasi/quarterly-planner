@@ -11,11 +11,13 @@
 - **Implemented:** Changed to "✓ Can Proceed" (green) and "⏸ Blocked" (red)
 - **Commit:** 53bde6c - Action-focused labels distinguish actionable vs blocked initiatives
 
-### 2. Initiative Priority Ordering in Next Section
-- Add ability to reorder initiatives in the Next section
-- Ordering should indicate priority
-- Consider drag-and-drop reordering or up/down buttons
-- Priority should be saved and persisted
+### 2. ✅ Initiative Priority Ordering in Next Section (COMPLETED)
+- ~~Add ability to reorder initiatives in the Next section~~
+- ~~Ordering should indicate priority~~
+- ~~Consider drag-and-drop reordering or up/down buttons~~
+- ~~Priority should be saved and persisted~~
+- **Implemented:** Drag-and-drop with ⋮⋮ grip handle on left side of initiative rows
+- **Commit:** 96ef5c6 - Reordering affects all sections (Initiatives, Quarter Commitment, Next, Team Summary)
 
 ### 3. Team Non-Contribution Concept
 - Introduce the idea that a team may not be contributing to an initiative at all
