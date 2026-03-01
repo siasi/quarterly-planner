@@ -101,15 +101,10 @@
         }
 
         .initiative-row {
-            display: grid;
-            grid-template-columns: 30px 200px 1fr 1fr 1fr 50px;
-            gap: 10px;
-            padding: 15px;
             background: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 4px;
             margin-bottom: 10px;
-            align-items: start;
         }
 
         .initiative-row.dragging-row {
@@ -118,6 +113,22 @@
 
         .initiative-row.drag-over {
             border-top: 3px solid #3498db;
+        }
+
+        .initiative-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 15px 10px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .initiative-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            align-items: start;
         }
 
         .initiative-grip-col {
@@ -136,6 +147,35 @@
 
         .initiative-grip-col:hover {
             color: #7f8c8d;
+        }
+
+        .initiative-name-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 4px 8px;
+            outline: none;
+        }
+
+        .initiative-name-input:hover {
+            background: rgba(52, 152, 219, 0.05);
+            border-radius: 3px;
+        }
+
+        .initiative-name-input:focus {
+            background: white;
+            border: 1px solid #3498db;
+            border-radius: 3px;
+            padding: 3px 7px;
+        }
+
+        .initiative-header-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
         }
 
         .initiative-name-col {
@@ -801,23 +841,30 @@ function createInitiativeRow(initiative, teamColorCache) {
     const statusColor = getInitiativeStatusColor(initiative);
     row.style.borderLeft = `5px solid ${statusColor}`;
 
-    // Grip handle column for drag-and-drop reordering
-    const gripCol = document.createElement('div');
-    gripCol.className = 'initiative-grip-col';
-    gripCol.innerHTML = '⋮⋮';
-    gripCol.draggable = true;
-    gripCol.setAttribute('aria-label', 'Drag to reorder initiative');
+    // Add drag-over event listeners to row for drop zone
+    row.addEventListener('dragover', handleRowDragOver);
+    row.addEventListener('dragleave', handleRowDragLeave);
+    row.addEventListener('drop', (e) => handleRowDrop(e, row));
 
-    gripCol.addEventListener('dragstart', (e) => handleRowDragStart(e, row));
-    gripCol.addEventListener('dragend', (e) => handleRowDragEnd(e, row));
+    // === HEADER SECTION ===
+    const header = document.createElement('div');
+    header.className = 'initiative-header';
 
-    // Name column
-    const nameCol = document.createElement('div');
-    nameCol.className = 'initiative-name-col';
+    // Grip handle for drag-and-drop reordering
+    const grip = document.createElement('div');
+    grip.className = 'initiative-grip-col';
+    grip.innerHTML = '⋮⋮';
+    grip.draggable = true;
+    grip.setAttribute('aria-label', 'Drag to reorder initiative');
+    grip.addEventListener('dragstart', (e) => handleRowDragStart(e, row));
+    grip.addEventListener('dragend', (e) => handleRowDragEnd(e, row));
 
+    // Name input (title style)
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
+    nameInput.className = 'initiative-name-input';
     nameInput.value = initiative.name;
+    nameInput.placeholder = 'Initiative name';
     nameInput.addEventListener('input', (e) => {
         initiative.name = e.target.value;
         saveToLocalStorage();
@@ -826,36 +873,47 @@ function createInitiativeRow(initiative, teamColorCache) {
         render();
     });
 
-    nameCol.appendChild(nameInput);
+    // Header controls (delete button)
+    const controls = document.createElement('div');
+    controls.className = 'initiative-header-controls';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'initiative-delete-col';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.title = 'Delete initiative';
+    deleteBtn.style.width = '40px';
+    deleteBtn.style.height = '40px';
+    deleteBtn.style.background = '#e74c3c';
+    deleteBtn.style.color = 'white';
+    deleteBtn.style.border = 'none';
+    deleteBtn.style.borderRadius = '4px';
+    deleteBtn.style.cursor = 'pointer';
+    deleteBtn.style.fontSize = '24px';
+    deleteBtn.setAttribute('aria-label', `Delete initiative: ${initiative.name}`);
+    deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
+
+    controls.appendChild(deleteBtn);
+
+    header.appendChild(grip);
+    header.appendChild(nameInput);
+    header.appendChild(controls);
+
+    // === BODY SECTION ===
+    const body = document.createElement('div');
+    body.className = 'initiative-body';
 
     // State columns
     const uncommittedCol = createStateColumn('uncommitted', initiative, teamColorCache);
     const committedCol = createStateColumn('committed', initiative, teamColorCache);
     const completedCol = createStateColumn('completed', initiative, teamColorCache);
 
-    // Delete column
-    const deleteCol = document.createElement('div');
-    deleteCol.className = 'initiative-delete-col';
+    body.appendChild(uncommittedCol);
+    body.appendChild(committedCol);
+    body.appendChild(completedCol);
 
-    const deleteBtn = document.createElement('button');
-    deleteBtn.innerHTML = '×';
-    deleteBtn.title = 'Delete initiative';
-    deleteBtn.setAttribute('aria-label', `Delete initiative: ${initiative.name}`);
-    deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
-
-    deleteCol.appendChild(deleteBtn);
-
-    // Add drag-over event listeners to row for drop zone
-    row.addEventListener('dragover', handleRowDragOver);
-    row.addEventListener('dragleave', handleRowDragLeave);
-    row.addEventListener('drop', (e) => handleRowDrop(e, row));
-
-    row.appendChild(gripCol);
-    row.appendChild(nameCol);
-    row.appendChild(uncommittedCol);
-    row.appendChild(committedCol);
-    row.appendChild(completedCol);
-    row.appendChild(deleteCol);
+    // Assemble row
+    row.appendChild(header);
+    row.appendChild(body);
 
     return row;
 }
