@@ -1325,6 +1325,14 @@ function createInitiativeRowContainer(initiative) {
     const statusColor = getInitiativeStatusColor(initiative);
     row.style.borderLeft = `5px solid ${statusColor}`;
 
+    // Add tooltip explaining color
+    const statusTooltips = {
+        [COLORS.GREEN]: '🟢 Green: All teams committed',
+        [COLORS.YELLOW]: '🟡 Yellow: Partially committed',
+        [COLORS.RED]: '🔴 Red: Not started'
+    };
+    row.title = statusTooltips[statusColor] || '';
+
     // Add drag-over event listeners for drop zone
     row.addEventListener('dragover', handleRowDragOver);
     row.addEventListener('dragleave', handleRowDragLeave);
@@ -1810,9 +1818,9 @@ function renderNextSection(initiatives, teamColorCache) {
         const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
         if (hasCommitted || hasCompleted) {
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ Can Proceed</span>';
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed" title="Some teams are committed, work can start">✓ Can Proceed</span>';
         } else {
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked">⏸ Blocked</span>';
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked" title="No teams committed yet">⏸ Blocked</span>';
         }
         row.appendChild(statusCell);
 
@@ -1890,7 +1898,16 @@ function createTeamColumn(team, teamColorCache) {
     const capacitySpan = document.createElement('span');
     capacitySpan.className = 'team-capacity';
     capacitySpan.textContent = `${committedCount}/${appState.maxInitiativesPerTeam}`;
-    capacitySpan.style.color = getTeamColor(team.id, teamColorCache);
+    const teamColor = getTeamColor(team.id, teamColorCache);
+    capacitySpan.style.color = teamColor;
+
+    // Add tooltip explaining color
+    const capacityTooltips = {
+        [COLORS.GREEN]: '🟢 Green: Team has capacity',
+        [COLORS.YELLOW]: '🟡 Yellow: Team has some commits',
+        [COLORS.RED]: '🔴 Red: Team at/over capacity'
+    };
+    capacitySpan.title = capacityTooltips[teamColor] || '';
 
     header.appendChild(nameSpan);
     header.appendChild(capacitySpan);
