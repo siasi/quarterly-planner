@@ -695,6 +695,10 @@ function createInfoIcon(tooltipText, compact = false) {
  * @param {string} tooltipText - The tooltip content
  */
 function attachTooltip(element, tooltipText) {
+    if (!element) {
+        console.warn('attachTooltip: element is null, skipping tooltip');
+        return;
+    }
     const icon = createInfoIcon(tooltipText);
     element.appendChild(icon);
 }
