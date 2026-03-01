@@ -1410,6 +1410,19 @@ function createStateColumn(state, initiative, teamColorCache) {
     const header = document.createElement('div');
     header.className = 'state-column-header';
     header.textContent = formatStateName(state);
+
+    // Add tooltip based on state
+    const tooltips = {
+        [TEAM_STATES.UNCOMMITTED]: 'Teams that are being asked to participate but haven\'t committed yet. Drag teams here during initial planning discussions.',
+        [TEAM_STATES.COMMITTED]: 'Teams that have committed to work on this initiative this quarter. This counts toward their capacity.',
+        [TEAM_STATES.COMPLETED]: 'Teams that have finished their work on this initiative. Completed work doesn\'t count toward capacity.',
+        [TEAM_STATES.NOT_APPLICABLE]: 'Teams that are not involved in this initiative at all. These teams are excluded from capacity calculations and commitment status.'
+    };
+
+    if (tooltips[state]) {
+        attachTooltip(header, tooltips[state]);
+    }
+
     col.appendChild(header);
 
     // Add team tags for this state
