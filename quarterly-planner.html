@@ -667,8 +667,35 @@ function initializeClearButton() {
     clearBtn.addEventListener('click', clearAllData);
 }
 
-// Get team color based on committed initiatives count
-function getTeamColor(teamId) {
+// Calculate team colors once and cache them (performance optimization)
+function calculateTeamColors() {
+    const cache = {};
+    const threshold = appState.maxInitiativesPerTeam;
+
+    appState.teams.forEach(team => {
+        const committedCount = appState.initiatives.filter(initiative =>
+            initiative.teamStates[team.id] === 'committed'
+        ).length;
+
+        if (committedCount >= threshold) {
+            cache[team.id] = '#e74c3c'; // Red: at/over capacity
+        } else if (committedCount > 0) {
+            cache[team.id] = '#f39c12'; // Yellow: some commitments, has room
+        } else {
+            cache[team.id] = '#27ae60'; // Green: no commitments, fully available
+        }
+    });
+
+    return cache;
+}
+
+// Get team color from cache (fallback to direct calculation if needed)
+function getTeamColor(teamId, colorCache = null) {
+    if (colorCache && colorCache[teamId]) {
+        return colorCache[teamId];
+    }
+
+    // Fallback: direct calculation (for backward compatibility)
     const committedCount = appState.initiatives.filter(initiative =>
         initiative.teamStates[teamId] === 'committed'
     ).length;
@@ -706,18 +733,20 @@ function initializeApp() {
 
 function render() {
     console.log('Rendering with state:', appState);
+    // Calculate team colors once for entire render cycle (performance optimization)
+    const teamColorCache = calculateTeamColors();
     updateHeaderControls();
-    renderInitiatives();
-    renderInitiativesSummary();
-    renderTeamSummary();
+    renderInitiatives(teamColorCache);
+    renderInitiativesSummary(teamColorCache);
+    renderTeamSummary(teamColorCache);
 }
 
-function renderInitiatives() {
+function renderInitiatives(teamColorCache) {
     const initiativeList = document.getElementById('initiativeList');
     initiativeList.innerHTML = '';
 
     appState.initiatives.forEach(initiative => {
-        const row = createInitiativeRow(initiative);
+        const row = createInitiativeRow(initiative, teamColorCache);
         initiativeList.appendChild(row);
     });
 }
@@ -737,7 +766,7 @@ function getInitiativeStatusColor(initiative) {
     }
 }
 
-function createInitiativeRow(initiative) {
+function createInitiativeRow(initiative, teamColorCache) {
     const row = document.createElement('div');
     row.className = 'initiative-row';
     row.dataset.initiativeId = initiative.id;
@@ -764,9 +793,9 @@ function createInitiativeRow(initiative) {
     nameCol.appendChild(nameInput);
 
     // State columns
-    const uncommittedCol = createStateColumn('uncommitted', initiative);
-    const committedCol = createStateColumn('committed', initiative);
-    const completedCol = createStateColumn('completed', initiative);
+    const uncommittedCol = createStateColumn('uncommitted', initiative, teamColorCache);
+    const committedCol = createStateColumn('committed', initiative, teamColorCache);
+    const completedCol = createStateColumn('completed', initiative, teamColorCache);
 
     // Delete column
     const deleteCol = document.createElement('div');
@@ -789,7 +818,7 @@ function createInitiativeRow(initiative) {
     return row;
 }
 
-function createStateColumn(state, initiative) {
+function createStateColumn(state, initiative, teamColorCache) {
     const col = document.createElement('div');
     col.className = 'state-column';
     col.dataset.state = state;
@@ -804,7 +833,7 @@ function createStateColumn(state, initiative) {
     appState.teams.forEach(team => {
         // Defensive check: ensure teamStates exists and has this team
         if (initiative.teamStates && initiative.teamStates[team.id] === state) {
-            const tag = createTeamTag(team, initiative.id);
+            const tag = createTeamTag(team, initiative.id, teamColorCache);
             col.appendChild(tag);
         }
     });
@@ -815,7 +844,7 @@ function createStateColumn(state, initiative) {
     return col;
 }
 
-function createTeamTag(team, initiativeId) {
+function createTeamTag(team, initiativeId, teamColorCache = null) {
     const tag = document.createElement('div');
     tag.className = 'team-tag';
     tag.textContent = team.name;
@@ -823,7 +852,7 @@ function createTeamTag(team, initiativeId) {
     tag.tabIndex = 0; // Make focusable for keyboard navigation
     tag.dataset.teamId = team.id;
     tag.dataset.initiativeId = initiativeId;
-    tag.style.backgroundColor = getTeamColor(team.id);
+    tag.style.backgroundColor = getTeamColor(team.id, teamColorCache);
 
     // Get current state for ARIA label
     const initiative = appState.initiatives.find(i => i.id === initiativeId);
@@ -979,7 +1008,7 @@ function initializeAddInitiativeButton() {
     addBtn.addEventListener('click', addInitiative);
 }
 
-function renderInitiativesSummary() {
+function renderInitiativesSummary(teamColorCache) {
     // Update quarter section title
     const quarterTitle = document.getElementById('quarterSectionTitle');
     quarterTitle.textContent = appState.quarter + ' Commitment';
@@ -1028,7 +1057,7 @@ function renderInitiativesSummary() {
             const tag = document.createElement('span');
             tag.className = 'team-tag-summary';
             tag.textContent = team.name;
-            tag.style.backgroundColor = getTeamColor(team.id);
+            tag.style.backgroundColor = getTeamColor(team.id, teamColorCache);
             teamsCell.appendChild(tag);
         });
         row.appendChild(teamsCell);
@@ -1084,7 +1113,7 @@ function renderInitiativesSummary() {
             const tag = document.createElement('span');
             tag.className = 'team-tag-summary';
             tag.textContent = team.name;
-            tag.style.backgroundColor = getTeamColor(team.id);
+            tag.style.backgroundColor = getTeamColor(team.id, teamColorCache);
             teamsCell.appendChild(tag);
         });
 
@@ -1093,20 +1122,20 @@ function renderInitiativesSummary() {
     });
 }
 
-function renderTeamSummary() {
+function renderTeamSummary(teamColorCache) {
     const teamSummary = document.getElementById('teamSummary');
     teamSummary.innerHTML = '';
 
     appState.teams.forEach(team => {
-        const column = createTeamColumn(team);
+        const column = createTeamColumn(team, teamColorCache);
         teamSummary.appendChild(column);
     });
 }
 
-function createTeamColumn(team) {
+function createTeamColumn(team, teamColorCache) {
     const column = document.createElement('div');
     column.className = 'team-column';
-    column.style.borderLeft = `5px solid ${getTeamColor(team.id)}`;
+    column.style.borderLeft = `5px solid ${getTeamColor(team.id, teamColorCache)}`;
 
     // Calculate committed count
     const committedCount = appState.initiatives.filter(
@@ -1116,7 +1145,7 @@ function createTeamColumn(team) {
     // Create header with capacity indicator
     const header = document.createElement('div');
     header.className = 'team-column-header';
-    header.style.color = getTeamColor(team.id);
+    header.style.color = getTeamColor(team.id, teamColorCache);
 
     header.textContent = `${team.name} (${committedCount}/${appState.maxInitiativesPerTeam})`;
     column.appendChild(header);
