@@ -542,6 +542,58 @@ const ID_PREFIXES = {
     INITIATIVE: 'init'
 };
 
+// === HELPER FUNCTIONS ===
+
+/**
+ * Get only active team states (excludes not-applicable teams)
+ * @param {Object} initiative - The initiative object
+ * @returns {Array} Array of active team states
+ */
+function getActiveTeamStates(initiative) {
+    return Object.values(initiative.teamStates)
+        .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+}
+
+/**
+ * Get teams that are in specific states for an initiative
+ * @param {Object} initiative - The initiative object
+ * @param {...string} states - The states to filter by
+ * @returns {Array} Array of team objects
+ */
+function getTeamsInState(initiative, ...states) {
+    return appState.teams.filter(team =>
+        states.includes(initiative.teamStates[team.id])
+    );
+}
+
+/**
+ * Calculate team capacity color based on committed count
+ * @param {number} committedCount - Number of committed initiatives
+ * @param {number} threshold - Maximum initiatives threshold
+ * @returns {string} Color hex code
+ */
+function calculateTeamCapacityColor(committedCount, threshold) {
+    if (committedCount >= threshold) {
+        return COLORS.RED; // Red: at/over capacity
+    } else if (committedCount > 0) {
+        return COLORS.YELLOW; // Yellow: some commitments, has room
+    } else {
+        return COLORS.GREEN; // Green: no commitments, fully available
+    }
+}
+
+/**
+ * Format state name for display
+ * @param {string} state - The state value
+ * @returns {string} Formatted state name
+ */
+function formatStateName(state) {
+    if (state === TEAM_STATES.NOT_APPLICABLE) {
+        return 'N/A';
+    }
+    return state.charAt(0).toUpperCase() + state.slice(1);
+}
+
 // === DATA MODEL ===
 
 let appState = {
@@ -808,13 +860,7 @@ function calculateTeamColors() {
             initiative.teamStates[team.id] === TEAM_STATES.COMMITTED
         ).length;
 
-        if (committedCount >= threshold) {
-            cache[team.id] = COLORS.RED; // Red: at/over capacity
-        } else if (committedCount > 0) {
-            cache[team.id] = COLORS.YELLOW; // Yellow: some commitments, has room
-        } else {
-            cache[team.id] = COLORS.GREEN; // Green: no commitments, fully available
-        }
+        cache[team.id] = calculateTeamCapacityColor(committedCount, threshold);
     });
 
     return cache;
@@ -831,15 +877,7 @@ function getTeamColor(teamId, colorCache = null) {
         initiative.teamStates[teamId] === TEAM_STATES.COMMITTED
     ).length;
 
-    const threshold = appState.maxInitiativesPerTeam;
-
-    if (committedCount >= threshold) {
-        return COLORS.RED; // Red: at/over capacity
-    } else if (committedCount > 0) {
-        return COLORS.YELLOW; // Yellow: some commitments, has room
-    } else {
-        return COLORS.GREEN; // Green: no commitments, fully available
-    }
+    return calculateTeamCapacityColor(committedCount, appState.maxInitiativesPerTeam);
 }
 
 // Initialize all event listeners (called once on app load)
@@ -884,8 +922,7 @@ function renderInitiatives(teamColorCache) {
 
 function getInitiativeStatusColor(initiative) {
     // Filter out N/A teams, only consider active team states
-    const activeStates = Object.values(initiative.teamStates)
-        .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+    const activeStates = getActiveTeamStates(initiative);
     const hasUncommitted = activeStates.some(state => state === TEAM_STATES.UNCOMMITTED);
     const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
     const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
@@ -987,8 +1024,7 @@ function createStateColumn(state, initiative, teamColorCache) {
 
     const header = document.createElement('div');
     header.className = 'state-column-header';
-    // Display "N/A" for not-applicable state
-    header.textContent = state === TEAM_STATES.NOT_APPLICABLE ? 'N/A' : state.charAt(0).toUpperCase() + state.slice(1);
+    header.textContent = formatStateName(state);
     col.appendChild(header);
 
     // Add team tags for this state
@@ -1264,8 +1300,7 @@ function renderInitiativesSummary(teamColorCache) {
 
     appState.initiatives.forEach(initiative => {
         // Filter out N/A teams (not-applicable), only consider active team states
-        const activeStates = Object.values(initiative.teamStates)
-            .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+        const activeStates = getActiveTeamStates(initiative);
         const hasUncommitted = activeStates.some(state => state === TEAM_STATES.UNCOMMITTED);
 
         if (!hasUncommitted) {
@@ -1288,11 +1323,7 @@ function renderInitiativesSummary(teamColorCache) {
 
         // Contributing teams cell
         const teamsCell = document.createElement('td');
-        const contributingTeams = appState.teams
-            .filter(team => {
-                const state = initiative.teamStates[team.id];
-                return state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED;
-            });
+        const contributingTeams = getTeamsInState(initiative, TEAM_STATES.COMMITTED, TEAM_STATES.COMPLETED);
 
         contributingTeams.forEach(team => {
             const tag = document.createElement('span');
@@ -1332,8 +1363,7 @@ function renderInitiativesSummary(teamColorCache) {
 
         // Status cell with traffic light system (ignore N/A teams)
         const statusCell = document.createElement('td');
-        const activeStates = Object.values(initiative.teamStates)
-            .filter(state => state !== TEAM_STATES.NOT_APPLICABLE);
+        const activeStates = getActiveTeamStates(initiative);
         const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
         const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
@@ -1348,8 +1378,7 @@ function renderInitiativesSummary(teamColorCache) {
 
         // Uncommitted teams cell
         const teamsCell = document.createElement('td');
-        const uncommittedTeams = appState.teams
-            .filter(team => initiative.teamStates[team.id] === TEAM_STATES.UNCOMMITTED);
+        const uncommittedTeams = getTeamsInState(initiative, TEAM_STATES.UNCOMMITTED);
 
         uncommittedTeams.forEach(team => {
             const tag = document.createElement('span');
