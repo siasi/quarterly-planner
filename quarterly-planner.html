@@ -1039,6 +1039,140 @@ function getTeamColor(teamId, colorCache = null) {
     return colorCache?.[teamId] || getTeamColorDirect(teamId);
 }
 
+// === TOOLTIP INTERACTION ===
+
+let currentOpenTooltip = null;
+let tooltipHoverTimeout = null;
+
+/**
+ * Show a tooltip
+ * @param {HTMLElement} icon - The info icon element
+ */
+function showTooltip(icon) {
+    const tooltip = icon.querySelector('.tooltip');
+    if (!tooltip) return;
+
+    // Close any currently open tooltip
+    hideAllTooltips();
+
+    // Show this tooltip
+    tooltip.classList.add('visible');
+    currentOpenTooltip = tooltip;
+}
+
+/**
+ * Hide a specific tooltip
+ * @param {HTMLElement} icon - The info icon element
+ */
+function hideTooltip(icon) {
+    const tooltip = icon.querySelector('.tooltip');
+    if (tooltip) {
+        tooltip.classList.remove('visible');
+        if (currentOpenTooltip === tooltip) {
+            currentOpenTooltip = null;
+        }
+    }
+}
+
+/**
+ * Hide all open tooltips
+ */
+function hideAllTooltips() {
+    if (currentOpenTooltip) {
+        currentOpenTooltip.classList.remove('visible');
+        currentOpenTooltip = null;
+    }
+    if (tooltipHoverTimeout) {
+        clearTimeout(tooltipHoverTimeout);
+        tooltipHoverTimeout = null;
+    }
+}
+
+/**
+ * Toggle tooltip visibility
+ * @param {HTMLElement} icon - The info icon element
+ */
+function toggleTooltip(icon) {
+    const tooltip = icon.querySelector('.tooltip');
+    if (tooltip && tooltip.classList.contains('visible')) {
+        hideTooltip(icon);
+    } else {
+        showTooltip(icon);
+    }
+}
+
+/**
+ * Initialize tooltip event handlers
+ */
+function initializeTooltips() {
+    // Click handler for toggling tooltips
+    document.addEventListener('click', (event) => {
+        const icon = event.target.closest('.info-icon');
+        if (icon) {
+            event.stopPropagation();
+            toggleTooltip(icon);
+        } else {
+            // Click outside - close all tooltips
+            hideAllTooltips();
+        }
+    });
+
+    // Keyboard handler for ESC key
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            hideAllTooltips();
+        }
+    });
+
+    // Hover handlers for info icons
+    document.addEventListener('mouseenter', (event) => {
+        const icon = event.target.closest('.info-icon');
+        if (icon) {
+            tooltipHoverTimeout = setTimeout(() => {
+                showTooltip(icon);
+            }, 300);
+        }
+    }, true);
+
+    document.addEventListener('mouseleave', (event) => {
+        const icon = event.target.closest('.info-icon');
+        if (icon && tooltipHoverTimeout) {
+            clearTimeout(tooltipHoverTimeout);
+            tooltipHoverTimeout = null;
+        }
+    }, true);
+
+    // Keyboard navigation (Enter/Space to toggle)
+    document.addEventListener('keydown', (event) => {
+        if (event.target.classList.contains('info-icon')) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggleTooltip(event.target);
+            }
+        }
+    });
+
+    // Focus/blur handlers
+    document.addEventListener('focus', (event) => {
+        if (event.target.classList.contains('info-icon')) {
+            // Focus shows tooltip after delay (like hover)
+            tooltipHoverTimeout = setTimeout(() => {
+                showTooltip(event.target);
+            }, 300);
+        }
+    }, true);
+
+    document.addEventListener('blur', (event) => {
+        if (event.target.classList.contains('info-icon')) {
+            if (tooltipHoverTimeout) {
+                clearTimeout(tooltipHoverTimeout);
+                tooltipHoverTimeout = null;
+            }
+            hideTooltip(event.target);
+        }
+    }, true);
+}
+
 // === INITIALIZATION ===
 
 // Initialize all event listeners (called once on app load)
@@ -1058,6 +1192,7 @@ function initializeApp() {
         saveToLocalStorage();
     }
     initializeEventListeners();
+    initializeTooltips();
     render();
 }
 
