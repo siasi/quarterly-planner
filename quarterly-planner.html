@@ -739,7 +739,72 @@ function initializeExportButton() {
     exportBtn.addEventListener('click', exportJSON);
 }
 
-// Import functionality
+/**
+ * Validate imported data structure
+ * @param {Object} data - The imported data object
+ * @returns {boolean} True if valid, false otherwise (alerts user)
+ */
+function validateImportedData(data) {
+    // Check required fields
+    if (!data.quarter || !data.teams || !data.initiatives) {
+        alert('Invalid JSON file: missing required fields (quarter, teams, initiatives)');
+        return false;
+    }
+
+    // Check array types
+    if (!Array.isArray(data.teams) || !Array.isArray(data.initiatives)) {
+        alert('Invalid JSON file: teams and initiatives must be arrays');
+        return false;
+    }
+
+    // Validate and fix maxInitiativesPerTeam
+    if (typeof data.maxInitiativesPerTeam !== 'number' || data.maxInitiativesPerTeam < 1) {
+        data.maxInitiativesPerTeam = 2; // Default
+    }
+
+    // Ensure all initiatives have eta field
+    data.initiatives.forEach(initiative => {
+        if (!initiative.eta) {
+            initiative.eta = '';
+        }
+    });
+
+    return true;
+}
+
+/**
+ * Synchronize team states with current teams list
+ * @param {Object} data - The imported data object
+ */
+function synchronizeTeamStates(data) {
+    const validTeamIds = new Set(data.teams.map(t => t.id));
+
+    data.initiatives.forEach(initiative => {
+        // Ensure initiative has teamStates object
+        if (!initiative.teamStates) {
+            initiative.teamStates = {};
+        }
+
+        // Remove orphaned team states (teams that no longer exist)
+        Object.keys(initiative.teamStates).forEach(teamId => {
+            if (!validTeamIds.has(teamId)) {
+                delete initiative.teamStates[teamId];
+            }
+        });
+
+        // Add missing team states for new teams (set to uncommitted)
+        data.teams.forEach(team => {
+            if (!initiative.teamStates[team.id]) {
+                initiative.teamStates[team.id] = TEAM_STATES.UNCOMMITTED;
+            }
+        });
+    });
+}
+
+/**
+ * Import data from JSON file
+ * @param {File} file - The file to import
+ */
 function importJSON(file) {
     const reader = new FileReader();
 
@@ -747,52 +812,13 @@ function importJSON(file) {
         try {
             const imported = JSON.parse(e.target.result);
 
-            // Validate structure
-            if (!imported.quarter || !imported.teams || !imported.initiatives) {
-                alert('Invalid JSON file: missing required fields (quarter, teams, initiatives)');
+            // Validate and fix imported data
+            if (!validateImportedData(imported)) {
                 return;
             }
 
-            if (!Array.isArray(imported.teams) || !Array.isArray(imported.initiatives)) {
-                alert('Invalid JSON file: teams and initiatives must be arrays');
-                return;
-            }
-
-            // Validate maxInitiativesPerTeam
-            if (typeof imported.maxInitiativesPerTeam !== 'number' || imported.maxInitiativesPerTeam < 1) {
-                imported.maxInitiativesPerTeam = 2; // Default
-            }
-
-            // Ensure all initiatives have eta field
-            imported.initiatives.forEach(initiative => {
-                if (!initiative.eta) {
-                    initiative.eta = '';
-                }
-            });
-
-            // Synchronize team states with teams list
-            const validTeamIds = new Set(imported.teams.map(t => t.id));
-
-            imported.initiatives.forEach(initiative => {
-                // Ensure initiative has teamStates object
-                if (!initiative.teamStates) {
-                    initiative.teamStates = {};
-                }
-
-                // Remove orphaned team states (teams that no longer exist)
-                Object.keys(initiative.teamStates).forEach(teamId => {
-                    if (!validTeamIds.has(teamId)) {
-                        delete initiative.teamStates[teamId];
-                    }
-                });
-
-                // Add missing team states for new teams (set to uncommitted)
-                imported.teams.forEach(team => {
-                    if (!initiative.teamStates[team.id]) {
-                        initiative.teamStates[team.id] = TEAM_STATES.UNCOMMITTED;
-                    }
-                });
-            });
+            // Synchronize team states
+            synchronizeTeamStates(imported);
 
             // Confirm before replacing
             if (!confirm('This will replace all current data. Continue?')) {
@@ -936,7 +962,12 @@ function getInitiativeStatusColor(initiative) {
     }
 }
 
-function createInitiativeRow(initiative, teamColorCache) {
+/**
+ * Create the initiative row container with styling and event listeners
+ * @param {Object} initiative - The initiative object
+ * @returns {HTMLElement} The row container element
+ */
+function createInitiativeRowContainer(initiative) {
     const row = document.createElement('div');
     row.className = 'initiative-row';
     row.dataset.initiativeId = initiative.id;
@@ -945,12 +976,21 @@ function createInitiativeRow(initiative, teamColorCache) {
     const statusColor = getInitiativeStatusColor(initiative);
     row.style.borderLeft = `5px solid ${statusColor}`;
 
-    // Add drag-over event listeners to row for drop zone
+    // Add drag-over event listeners for drop zone
     row.addEventListener('dragover', handleRowDragOver);
     row.addEventListener('dragleave', handleRowDragLeave);
     row.addEventListener('drop', (e) => handleRowDrop(e, row));
 
-    // === HEADER SECTION ===
+    return row;
+}
+
+/**
+ * Create the initiative header with grip, name input, and delete button
+ * @param {Object} initiative - The initiative object
+ * @param {HTMLElement} row - The row container for drag handlers
+ * @returns {HTMLElement} The header element
+ */
+function createInitiativeHeader(initiative, row) {
     const header = document.createElement('div');
     header.className = 'initiative-header';
 
@@ -994,11 +1034,20 @@ function createInitiativeRow(initiative, teamColorCache) {
     header.appendChild(nameInput);
     header.appendChild(controls);
 
-    // === BODY SECTION ===
+    return header;
+}
+
+/**
+ * Create the initiative body with state columns
+ * @param {Object} initiative - The initiative object
+ * @param {Object} teamColorCache - Cached team colors
+ * @returns {HTMLElement} The body element
+ */
+function createInitiativeBody(initiative, teamColorCache) {
     const body = document.createElement('div');
     body.className = 'initiative-body';
 
-    // State columns
+    // Create state columns
     const uncommittedCol = createStateColumn(TEAM_STATES.UNCOMMITTED, initiative, teamColorCache);
     const committedCol = createStateColumn(TEAM_STATES.COMMITTED, initiative, teamColorCache);
     const completedCol = createStateColumn(TEAM_STATES.COMPLETED, initiative, teamColorCache);
@@ -1009,7 +1058,20 @@ function createInitiativeRow(initiative, teamColorCache) {
     body.appendChild(completedCol);
     body.appendChild(naCol);
 
-    // Assemble row
+    return body;
+}
+
+/**
+ * Create a complete initiative row
+ * @param {Object} initiative - The initiative object
+ * @param {Object} teamColorCache - Cached team colors
+ * @returns {HTMLElement} The complete row element
+ */
+function createInitiativeRow(initiative, teamColorCache) {
+    const row = createInitiativeRowContainer(initiative);
+    const header = createInitiativeHeader(initiative, row);
+    const body = createInitiativeBody(initiative, teamColorCache);
+
     row.appendChild(header);
     row.appendChild(body);
 
@@ -1283,37 +1345,38 @@ function initializeAddInitiativeButton() {
     addBtn.addEventListener('click', addInitiative);
 }
 
-function renderInitiativesSummary(teamColorCache) {
-    // Update quarter section title
-    const quarterTitle = document.getElementById('quarterSectionTitle');
-    quarterTitle.textContent = appState.quarter + ' Commitment';
-
-    // Get table bodies
-    const quarterBody = document.getElementById('quarterBody');
-    const nextBody = document.getElementById('nextBody');
-    quarterBody.innerHTML = '';
-    nextBody.innerHTML = '';
-
-    // Split initiatives into committed and uncommitted
-    const committedInitiatives = [];
-    const uncommittedInitiatives = [];
+/**
+ * Split initiatives into committed and uncommitted based on team states
+ * @returns {Object} Object with committed and uncommitted arrays
+ */
+function splitInitiativesByCommitment() {
+    const committed = [];
+    const uncommitted = [];
 
     appState.initiatives.forEach(initiative => {
-        // Filter out N/A teams (not-applicable), only consider active team states
         const activeStates = getActiveTeamStates(initiative);
         const hasUncommitted = activeStates.some(state => state === TEAM_STATES.UNCOMMITTED);
 
         if (!hasUncommitted) {
-            // All active teams committed or completed - goes to quarter section
-            committedInitiatives.push(initiative);
+            committed.push(initiative);
         } else {
-            // At least one active team uncommitted - goes to next section
-            uncommittedInitiatives.push(initiative);
+            uncommitted.push(initiative);
         }
     });
 
-    // Render committed initiatives (quarter section)
-    committedInitiatives.forEach(initiative => {
+    return { committed, uncommitted };
+}
+
+/**
+ * Render committed initiatives in the quarter section
+ * @param {Array} initiatives - Array of committed initiatives
+ * @param {Object} teamColorCache - Cached team colors
+ */
+function renderQuarterSection(initiatives, teamColorCache) {
+    const quarterBody = document.getElementById('quarterBody');
+    quarterBody.innerHTML = '';
+
+    initiatives.forEach(initiative => {
         const row = document.createElement('tr');
 
         // Initiative name cell
@@ -1351,9 +1414,18 @@ function renderInitiativesSummary(teamColorCache) {
 
         quarterBody.appendChild(row);
     });
+}
 
-    // Render uncommitted initiatives (next section)
-    uncommittedInitiatives.forEach(initiative => {
+/**
+ * Render uncommitted initiatives in the next section
+ * @param {Array} initiatives - Array of uncommitted initiatives
+ * @param {Object} teamColorCache - Cached team colors
+ */
+function renderNextSection(initiatives, teamColorCache) {
+    const nextBody = document.getElementById('nextBody');
+    nextBody.innerHTML = '';
+
+    initiatives.forEach(initiative => {
         const row = document.createElement('tr');
 
         // Initiative name cell
@@ -1361,17 +1433,15 @@ function renderInitiativesSummary(teamColorCache) {
         nameCell.textContent = initiative.name;
         row.appendChild(nameCell);
 
-        // Status cell with traffic light system (ignore N/A teams)
+        // Status cell with traffic light system
         const statusCell = document.createElement('td');
         const activeStates = getActiveTeamStates(initiative);
         const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
         const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
         if (hasCommitted || hasCompleted) {
-            // Green: Some teams committed/completed, work can proceed
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed">✓ Can Proceed</span>';
         } else {
-            // Red: All teams uncommitted, initiative is blocked
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked">⏸ Blocked</span>';
         }
         row.appendChild(statusCell);
@@ -1391,6 +1461,21 @@ function renderInitiativesSummary(teamColorCache) {
         row.appendChild(teamsCell);
         nextBody.appendChild(row);
     });
+}
+
+/**
+ * Render initiatives summary (Quarter Commitment and Next sections)
+ * @param {Object} teamColorCache - Cached team colors
+ */
+function renderInitiativesSummary(teamColorCache) {
+    // Update quarter section title
+    const quarterTitle = document.getElementById('quarterSectionTitle');
+    quarterTitle.textContent = appState.quarter + ' Commitment';
+
+    // Split initiatives and render both sections
+    const { committed, uncommitted } = splitInitiativesByCommitment();
+    renderQuarterSection(committed, teamColorCache);
+    renderNextSection(uncommitted, teamColorCache);
 }
 
 function renderTeamSummary(teamColorCache) {
