@@ -4,10 +4,12 @@
 
 ## Planned Changes
 
-### 1. Revisit Initiative Status in Next Section
-- Review the current status badges (⚠ Partially Committed, ✕ Not Started)
-- Consider whether the current status representation is optimal
-- Evaluate if additional status levels or different indicators would be more useful
+### 1. ✅ Revisit Initiative Status in Next Section (COMPLETED)
+- ~~Review the current status badges (⚠ Partially Committed, ✕ Not Started)~~
+- ~~Consider whether the current status representation is optimal~~
+- ~~Evaluate if additional status levels or different indicators would be more useful~~
+- **Implemented:** Changed to "✓ Can Proceed" (green) and "⏸ Blocked" (red)
+- **Commit:** 53bde6c - Action-focused labels distinguish actionable vs blocked initiatives
 
 ### 2. Initiative Priority Ordering in Next Section
 - Add ability to reorder initiatives in the Next section
