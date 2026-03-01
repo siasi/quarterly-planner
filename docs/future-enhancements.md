@@ -19,7 +19,7 @@
 - **Implemented:** Drag-and-drop with ⋮⋮ grip handle on left side of initiative rows
 - **Commit:** 96ef5c6 - Reordering affects all sections (Initiatives, Quarter Commitment, Next, Team Summary)
 
-### 3. Team Non-Contribution Concept (IN PLANNING)
+### 3. ✅ Team Non-Contribution Concept (COMPLETED)
 - Introduce the idea that a team may not be contributing to an initiative at all
 - This is different from uncommitted/committed/completed states
 - Consider use cases: some initiatives don't need certain teams
@@ -37,14 +37,15 @@
 - Add new state value: `'not-applicable'` alongside `'uncommitted'`, `'committed'`, `'completed'`
 - Update initiative.teamStates to support: `{teamId: 'not-applicable'}`
 
-**Implementation TODO:**
-- Add 4th column to initiative row grid
-- Add "N/A" state column with drop zone
-- Update capacity calculation logic to exclude N/A
-- Update Team Summary to filter out N/A initiatives
-- Update Next section to filter out N/A teams
-- Update commitment status calculation to ignore N/A teams
-- Update CSS grid template columns (add 1 more column)
+**Implementation:** ✅ All completed
+- ✅ Add 4th column to initiative row grid
+- ✅ Add "N/A" state column with drop zone
+- ✅ Update capacity calculation logic to exclude N/A
+- ✅ Update Team Summary to filter out N/A initiatives
+- ✅ Update Next section to filter out N/A teams
+- ✅ Update commitment status calculation to ignore N/A teams
+- ✅ Update CSS grid template columns (add 1 more column)
+- **Commit:** dcd8961 - Teams can be dragged to N/A column, excluded from all calculations
 
 ### 4. ✅ Revisit Initiative Name Field (COMPLETED)
 - ~~Review the current inline editing approach~~
