@@ -520,10 +520,10 @@
             <div class="header-content">
                 <h1>Quarterly Planning Tracker</h1>
                 <div class="header-controls">
-                    <label>
+                    <label id="quarterLabel">
                         Quarter: <input type="text" id="quarterInput" placeholder="Q1 2026" aria-label="Quarter name">
                     </label>
-                    <label>
+                    <label id="maxInitiativesLabel">
                         Max Initiatives per Team: <input type="number" id="maxInitiativesInput" min="1" value="2" aria-label="Maximum initiatives per team threshold">
                     </label>
                     <button id="exportBtn" aria-label="Export data as JSON file">Export JSON</button>
@@ -1234,6 +1234,31 @@ function initializeSectionHeaderTooltips() {
     attachTooltip(nextHeader, 'Initiatives that still have uncommitted teams. These are being discussed but not yet fully committed. The status shows whether work can proceed (some teams committed) or is blocked (no teams committed).');
 }
 
+/**
+ * Initialize tooltips for header controls
+ */
+function initializeHeaderControlTooltips() {
+    // Quarter input
+    const quarterLabel = document.getElementById('quarterLabel');
+    attachTooltip(quarterLabel, 'The planning period (e.g., "Q1 2026"). This appears in section headers and ETA suggestions. Click to edit.');
+
+    // Max Initiatives input
+    const maxInitiativesLabel = document.getElementById('maxInitiativesLabel');
+    attachTooltip(maxInitiativesLabel, 'The maximum number of committed initiatives before a team is considered overcommitted. Used to highlight capacity issues in the Team Summary.');
+
+    // Export button
+    const exportBtn = document.getElementById('exportBtn');
+    attachTooltip(exportBtn, 'Download your current planning data as a JSON file. Use this to share with stakeholders or back up your work.');
+
+    // Import button
+    const importBtn = document.getElementById('importBtn');
+    attachTooltip(importBtn, 'Load a previously exported planning file. This will replace all current data.');
+
+    // Clear button
+    const clearBtn = document.getElementById('clearBtn');
+    attachTooltip(clearBtn, 'Reset the application to sample data. This will erase all your current initiatives and team commitments.');
+}
+
 // Initialize app
 function initializeApp() {
     const hasStoredData = loadFromLocalStorage();
@@ -1244,6 +1269,7 @@ function initializeApp() {
     initializeEventListeners();
     initializeTooltips();
     initializeSectionHeaderTooltips();
+    initializeHeaderControlTooltips();
     render();
 }
 
