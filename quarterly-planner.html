@@ -1349,6 +1349,7 @@ function createInitiativeHeader(initiative, row) {
     grip.innerHTML = '⋮⋮';
     grip.draggable = true;
     grip.setAttribute('aria-label', 'Drag to reorder initiative');
+    grip.title = 'Drag to reorder initiatives';
     grip.addEventListener('dragstart', (e) => handleRowDragStart(e, row));
     grip.addEventListener('dragend', (e) => handleRowDragEnd(e, row));
 
@@ -1373,7 +1374,7 @@ function createInitiativeHeader(initiative, row) {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'initiative-delete-btn';
     deleteBtn.innerHTML = '×';
-    deleteBtn.title = 'Delete initiative';
+    deleteBtn.title = 'Delete this initiative';
     deleteBtn.setAttribute('aria-label', `Delete initiative: ${initiative.name}`);
     deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
 
@@ -1475,6 +1476,7 @@ function createTeamTag(team, initiativeId, teamColorCache = null) {
     tag.dataset.teamId = team.id;
     tag.dataset.initiativeId = initiativeId;
     tag.style.backgroundColor = getTeamColor(team.id, teamColorCache);
+    tag.title = 'Drag to change commitment status';
 
     // Get current state for ARIA label
     const initiative = appState.initiatives.find(i => i.id === initiativeId);
