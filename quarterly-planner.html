@@ -1797,9 +1797,18 @@ function renderNextSection(initiatives, teamColorCache) {
  * @param {Object} teamColorCache - Cached team colors
  */
 function renderInitiativesSummary(teamColorCache) {
-    // Update quarter section title
+    // Update quarter section title with tooltip
     const quarterTitle = document.getElementById('quarterSectionTitle');
     quarterTitle.textContent = appState.quarter + ' Commitment';
+
+    // Remove existing tooltip if any
+    const existingIcon = quarterTitle.querySelector('.info-icon');
+    if (existingIcon) {
+        existingIcon.remove();
+    }
+
+    // Add tooltip
+    attachTooltip(quarterTitle, 'Initiatives where all teams have committed or completed their work. These are the confirmed deliverables for this quarter. Add target completion dates in the ETA column.');
 
     // Split initiatives and render both sections
     const { committed, uncommitted } = splitInitiativesByCommitment();
