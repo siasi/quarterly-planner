@@ -378,6 +378,12 @@
             font-size: 14px;
         }
 
+        .initiatives-summary-table td:first-child {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
         .initiatives-summary-table tr:last-child td {
             border-bottom: none;
         }
@@ -463,7 +469,7 @@
 
         <!-- Initiative List -->
         <section class="initiative-section">
-            <h2>Initiatives</h2>
+            <h2>Initiatives and Team Commitment</h2>
             <div id="initiativeList"></div>
             <button id="addInitiativeBtn" class="add-btn">+ Add Initiative</button>
         </section>
@@ -589,9 +595,37 @@ function calculateTeamCapacityColor(committedCount, threshold) {
  */
 function formatStateName(state) {
     if (state === TEAM_STATES.NOT_APPLICABLE) {
-        return 'N/A';
+        return 'Not Participating';
     }
     return state.charAt(0).toUpperCase() + state.slice(1);
+}
+
+/**
+ * Generate incremental quarter names starting from a given quarter
+ * @param {string} startQuarter - Starting quarter (e.g., "Q1 2026")
+ * @param {number} count - Number of quarters to generate
+ * @returns {Array} Array of quarter names
+ */
+function generateIncrementalQuarters(startQuarter, count = 3) {
+    const match = startQuarter.match(/Q(\d)\s+(\d{4})/);
+    if (!match) {
+        return [startQuarter];
+    }
+
+    let quarter = parseInt(match[1]);
+    let year = parseInt(match[2]);
+    const quarters = [];
+
+    for (let i = 0; i < count; i++) {
+        quarters.push(`Q${quarter} ${year}`);
+        quarter++;
+        if (quarter > 4) {
+            quarter = 1;
+            year++;
+        }
+    }
+
+    return quarters;
 }
 
 // === DATA MODEL ===
@@ -707,8 +741,7 @@ function initializeHeaderControls() {
     quarterInput.addEventListener('input', (e) => {
         appState.quarter = e.target.value;
         saveToLocalStorage();
-        // Only update quarter section title, no full render
-        document.getElementById('quarterSectionTitle').textContent = appState.quarter + ' Commitment';
+        render(); // Full render to update ETA placeholders and section title
     });
 
     maxInitiativesInput.addEventListener('change', (e) => {
@@ -1420,7 +1453,11 @@ function renderQuarterSection(initiatives, teamColorCache) {
         etaInput.type = 'text';
         etaInput.className = 'eta-input';
         etaInput.value = initiative.eta || '';
-        etaInput.placeholder = 'Enter ETA';
+
+        // Generate dynamic placeholder with incremental quarters
+        const quarters = generateIncrementalQuarters(appState.quarter, 2);
+        etaInput.placeholder = `Enter ETA (${quarters.join(', ')}, ...)`;
+
         etaInput.setAttribute('aria-label', `ETA for ${initiative.name}`);
         etaInput.addEventListener('input', (e) => {
             initiative.eta = e.target.value;
