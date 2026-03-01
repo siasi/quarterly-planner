@@ -1042,13 +1042,16 @@ function getTeamColor(teamId, colorCache = null) {
 // === TOOLTIP INTERACTION ===
 
 let currentOpenTooltip = null;
+let tooltipOpenMethod = null; // 'hover' | 'click' | 'focus' | null
 let tooltipHoverTimeout = null;
+let tooltipFocusTimeout = null;
 
 /**
  * Show a tooltip
  * @param {HTMLElement} icon - The info icon element
+ * @param {string} method - How the tooltip was opened ('hover' | 'click' | 'focus')
  */
-function showTooltip(icon) {
+function showTooltip(icon, method = 'click') {
     const tooltip = icon.querySelector('.tooltip');
     if (!tooltip) return;
 
@@ -1058,6 +1061,7 @@ function showTooltip(icon) {
     // Show this tooltip
     tooltip.classList.add('visible');
     currentOpenTooltip = tooltip;
+    tooltipOpenMethod = method;
 }
 
 /**
@@ -1070,6 +1074,7 @@ function hideTooltip(icon) {
         tooltip.classList.remove('visible');
         if (currentOpenTooltip === tooltip) {
             currentOpenTooltip = null;
+            tooltipOpenMethod = null;
         }
     }
 }
@@ -1081,10 +1086,15 @@ function hideAllTooltips() {
     if (currentOpenTooltip) {
         currentOpenTooltip.classList.remove('visible');
         currentOpenTooltip = null;
+        tooltipOpenMethod = null;
     }
     if (tooltipHoverTimeout) {
         clearTimeout(tooltipHoverTimeout);
         tooltipHoverTimeout = null;
+    }
+    if (tooltipFocusTimeout) {
+        clearTimeout(tooltipFocusTimeout);
+        tooltipFocusTimeout = null;
     }
 }
 
@@ -1129,16 +1139,22 @@ function initializeTooltips() {
         const icon = event.target.closest('.info-icon');
         if (icon) {
             tooltipHoverTimeout = setTimeout(() => {
-                showTooltip(icon);
+                showTooltip(icon, 'hover');
             }, 300);
         }
     }, true);
 
     document.addEventListener('mouseleave', (event) => {
         const icon = event.target.closest('.info-icon');
-        if (icon && tooltipHoverTimeout) {
-            clearTimeout(tooltipHoverTimeout);
-            tooltipHoverTimeout = null;
+        if (icon) {
+            if (tooltipHoverTimeout) {
+                clearTimeout(tooltipHoverTimeout);
+                tooltipHoverTimeout = null;
+            }
+            // Hide if opened via hover
+            if (tooltipOpenMethod === 'hover') {
+                hideTooltip(icon);
+            }
         }
     }, true);
 
@@ -1156,19 +1172,22 @@ function initializeTooltips() {
     document.addEventListener('focus', (event) => {
         if (event.target.classList.contains('info-icon')) {
             // Focus shows tooltip after delay (like hover)
-            tooltipHoverTimeout = setTimeout(() => {
-                showTooltip(event.target);
+            tooltipFocusTimeout = setTimeout(() => {
+                showTooltip(event.target, 'focus');
             }, 300);
         }
     }, true);
 
     document.addEventListener('blur', (event) => {
         if (event.target.classList.contains('info-icon')) {
-            if (tooltipHoverTimeout) {
-                clearTimeout(tooltipHoverTimeout);
-                tooltipHoverTimeout = null;
+            if (tooltipFocusTimeout) {
+                clearTimeout(tooltipFocusTimeout);
+                tooltipFocusTimeout = null;
             }
-            hideTooltip(event.target);
+            // Hide if opened via focus
+            if (tooltipOpenMethod === 'focus') {
+                hideTooltip(event.target);
+            }
         }
     }, true);
 }
