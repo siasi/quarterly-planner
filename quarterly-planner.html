@@ -102,7 +102,7 @@
 
         .initiative-row {
             display: grid;
-            grid-template-columns: 200px 1fr 1fr 1fr 50px;
+            grid-template-columns: 30px 200px 1fr 1fr 1fr 50px;
             gap: 10px;
             padding: 15px;
             background: #f9f9f9;
@@ -110,6 +110,32 @@
             border-radius: 4px;
             margin-bottom: 10px;
             align-items: start;
+        }
+
+        .initiative-row.dragging-row {
+            opacity: 0.4;
+        }
+
+        .initiative-row.drag-over {
+            border-top: 3px solid #3498db;
+        }
+
+        .initiative-grip-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            color: #95a5a6;
+            font-size: 18px;
+            user-select: none;
+        }
+
+        .initiative-grip-col:active {
+            cursor: grabbing;
+        }
+
+        .initiative-grip-col:hover {
+            color: #7f8c8d;
         }
 
         .initiative-name-col {
@@ -775,6 +801,16 @@ function createInitiativeRow(initiative, teamColorCache) {
     const statusColor = getInitiativeStatusColor(initiative);
     row.style.borderLeft = `5px solid ${statusColor}`;
 
+    // Grip handle column for drag-and-drop reordering
+    const gripCol = document.createElement('div');
+    gripCol.className = 'initiative-grip-col';
+    gripCol.innerHTML = '⋮⋮';
+    gripCol.draggable = true;
+    gripCol.setAttribute('aria-label', 'Drag to reorder initiative');
+
+    gripCol.addEventListener('dragstart', (e) => handleRowDragStart(e, row));
+    gripCol.addEventListener('dragend', (e) => handleRowDragEnd(e, row));
+
     // Name column
     const nameCol = document.createElement('div');
     nameCol.className = 'initiative-name-col';
@@ -809,6 +845,12 @@ function createInitiativeRow(initiative, teamColorCache) {
 
     deleteCol.appendChild(deleteBtn);
 
+    // Add drag-over event listeners to row for drop zone
+    row.addEventListener('dragover', handleRowDragOver);
+    row.addEventListener('dragleave', handleRowDragLeave);
+    row.addEventListener('drop', (e) => handleRowDrop(e, row));
+
+    row.appendChild(gripCol);
     row.appendChild(nameCol);
     row.appendChild(uncommittedCol);
     row.appendChild(committedCol);
@@ -904,6 +946,7 @@ function updateCommitmentBadge(badge, initiative) {
 }
 
 let draggedElement = null;
+let draggedRow = null;
 
 function handleDragStart(e) {
     draggedElement = e.target;
@@ -970,6 +1013,83 @@ function handleDrop(e) {
         saveToLocalStorage();
         render();
     }
+
+    return false;
+}
+
+// Row reordering drag handlers
+function handleRowDragStart(e, row) {
+    draggedRow = row;
+    row.classList.add('dragging-row');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', row.innerHTML);
+}
+
+function handleRowDragEnd(e, row) {
+    row.classList.remove('dragging-row');
+
+    // Remove drag-over class from all rows
+    document.querySelectorAll('.initiative-row').forEach(r => {
+        r.classList.remove('drag-over');
+    });
+
+    draggedRow = null;
+}
+
+function handleRowDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+
+    // Only handle row dragging, not team tag dragging
+    if (!draggedRow) {
+        return;
+    }
+
+    e.dataTransfer.dropEffect = 'move';
+
+    const row = e.currentTarget;
+    if (row !== draggedRow) {
+        row.classList.add('drag-over');
+    }
+
+    return false;
+}
+
+function handleRowDragLeave(e) {
+    const row = e.currentTarget;
+    row.classList.remove('drag-over');
+}
+
+function handleRowDrop(e, targetRow) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    e.preventDefault();
+
+    // Only handle row dragging, not team tag dragging
+    if (!draggedRow || !targetRow || draggedRow === targetRow) {
+        return false;
+    }
+
+    // Get initiative IDs
+    const draggedId = draggedRow.dataset.initiativeId;
+    const targetId = targetRow.dataset.initiativeId;
+
+    // Find indices in array
+    const draggedIndex = appState.initiatives.findIndex(i => i.id === draggedId);
+    const targetIndex = appState.initiatives.findIndex(i => i.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+        return false;
+    }
+
+    // Reorder array
+    const [removed] = appState.initiatives.splice(draggedIndex, 1);
+    appState.initiatives.splice(targetIndex, 0, removed);
+
+    saveToLocalStorage();
+    render();
 
     return false;
 }
