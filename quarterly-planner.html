@@ -1347,27 +1347,6 @@ function createInitiativeRowContainer(initiative) {
     const statusColor = getInitiativeStatusColor(initiative);
     row.style.borderLeft = `5px solid ${statusColor}`;
 
-    // Create a small status indicator element for the tooltip
-    const statusIndicator = document.createElement('div');
-    statusIndicator.style.position = 'absolute';
-    statusIndicator.style.left = '0';
-    statusIndicator.style.top = '0';
-    statusIndicator.style.width = '5px';
-    statusIndicator.style.height = '100%';
-    statusIndicator.style.cursor = 'help';
-    statusIndicator.style.zIndex = '1';
-
-    // Add tooltip to the status indicator only
-    const statusTooltips = {
-        [COLORS.GREEN]: '🟢 Green: All teams committed',
-        [COLORS.YELLOW]: '🟡 Yellow: Partially committed',
-        [COLORS.RED]: '🔴 Red: No team committed'
-    };
-    statusIndicator.title = statusTooltips[statusColor] || '';
-
-    row.style.position = 'relative'; // Enable absolute positioning for child
-    row.appendChild(statusIndicator);
-
     // Add drag-over event listeners for drop zone
     row.addEventListener('dragover', handleRowDragOver);
     row.addEventListener('dragleave', handleRowDragLeave);
