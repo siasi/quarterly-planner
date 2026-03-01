@@ -690,6 +690,16 @@ function createInfoIcon(tooltipText, compact = false) {
 }
 
 /**
+ * Attach an info icon with tooltip to an existing element
+ * @param {HTMLElement} element - The element to attach tooltip to
+ * @param {string} tooltipText - The tooltip content
+ */
+function attachTooltip(element, tooltipText) {
+    const icon = createInfoIcon(tooltipText);
+    element.appendChild(icon);
+}
+
+/**
  * Generate incremental quarter names starting from a given quarter
  * @param {string} startQuarter - Starting quarter (e.g., "Q1 2026")
  * @param {number} count - Number of quarters to generate
@@ -1203,6 +1213,23 @@ function initializeEventListeners() {
     initializeAddInitiativeButton();
 }
 
+/**
+ * Initialize tooltips for section headers
+ */
+function initializeSectionHeaderTooltips() {
+    // Initiatives and Team Commitment
+    const initiativeHeader = document.querySelector('.initiative-section h2');
+    attachTooltip(initiativeHeader, 'Manage your quarterly initiatives and track which teams are involved. Drag team tags between columns to update their commitment status. The colored left border shows overall initiative status: green (all teams committed), yellow (partially committed), red (not started).');
+
+    // Team Summary
+    const teamSummaryHeader = document.querySelector('.team-summary-section h2');
+    attachTooltip(teamSummaryHeader, 'Shows the current workload for each team. The number (e.g., "3/5") indicates committed initiatives versus your maximum threshold. Green headers mean the team has capacity, red means they\'re at or over capacity. Only committed and uncommitted initiatives are shown here.');
+
+    // Next section
+    const nextHeader = document.querySelector('.next-section h2');
+    attachTooltip(nextHeader, 'Initiatives that still have uncommitted teams. These are being discussed but not yet fully committed. The status shows whether work can proceed (some teams committed) or is blocked (no teams committed).');
+}
+
 // Initialize app
 function initializeApp() {
     const hasStoredData = loadFromLocalStorage();
@@ -1212,6 +1239,7 @@ function initializeApp() {
     }
     initializeEventListeners();
     initializeTooltips();
+    initializeSectionHeaderTooltips();
     render();
 }
 
