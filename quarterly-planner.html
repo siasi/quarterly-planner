@@ -400,17 +400,24 @@
         }
 
         .team-column-header {
-            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
+            gap: 12px;
+        }
+
+        .team-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            flex: 1;
+        }
+
+        .team-capacity {
             font-size: 14px;
-        }
-
-        .team-column-header.over-capacity {
-            color: #e74c3c;
-        }
-
-        .team-column-header.under-capacity {
-            color: #27ae60;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         .initiative-tag {
@@ -1345,9 +1352,20 @@ function createTeamColumn(team, teamColorCache) {
     // Create header with capacity indicator
     const header = document.createElement('div');
     header.className = 'team-column-header';
-    header.style.color = getTeamColor(team.id, teamColorCache);
 
-    header.textContent = `${team.name} (${committedCount}/${appState.maxInitiativesPerTeam})`;
+    // Team name (always dark, prominent)
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'team-name';
+    nameSpan.textContent = team.name;
+
+    // Capacity count (colored based on capacity)
+    const capacitySpan = document.createElement('span');
+    capacitySpan.className = 'team-capacity';
+    capacitySpan.textContent = `${committedCount}/${appState.maxInitiativesPerTeam}`;
+    capacitySpan.style.color = getTeamColor(team.id, teamColorCache);
+
+    header.appendChild(nameSpan);
+    header.appendChild(capacitySpan);
     column.appendChild(header);
 
     // Add initiative tags for committed and uncommitted states

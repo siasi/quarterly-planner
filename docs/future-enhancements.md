@@ -70,13 +70,16 @@
 - Consider ability to delete teams (with appropriate warnings)
 - Design UI for team management (modal, inline, or separate section)
 
-### 7. Revisit Team Names in Team Summary
-- Review visual treatment of team names in Team Summary section
-- Current: "Backend Team (3/5)" with colored text and left border
-- Consider: Font size, weight, prominence, hierarchy
-- Evaluate: Capacity indicator styling "(3/5)"
-- Assess: Color treatment (currently text color changes based on capacity)
-- Goal: Make team names more visually prominent and clear
+### 7. ✅ Revisit Team Names in Team Summary (COMPLETED)
+- ~~Review visual treatment of team names in Team Summary section~~
+- ~~Current: "Backend Team (3/5)" with colored text and left border~~
+- ~~Consider: Font size, weight, prominence, hierarchy~~
+- ~~Evaluate: Capacity indicator styling "(3/5)"~~
+- ~~Assess: Color treatment (currently text color changes based on capacity)~~
+- ~~Goal: Make team names more visually prominent and clear~~
+- **Implemented:** Side-by-side layout with visual separation
+- **Design:** Team name bold 16px dark gray | Capacity count 14px capacity-colored
+- **Result:** Team name always readable, capacity indicator visually distinct
 
 ## Implementation Notes
 
