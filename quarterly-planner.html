@@ -125,7 +125,7 @@
 
         .initiative-body {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
             gap: 10px;
             padding: 15px;
             align-items: start;
@@ -840,13 +840,15 @@ function renderInitiatives(teamColorCache) {
 }
 
 function getInitiativeStatusColor(initiative) {
-    const states = Object.values(initiative.teamStates);
-    const hasUncommitted = states.some(state => state === 'uncommitted');
-    const hasCommitted = states.some(state => state === 'committed');
-    const hasCompleted = states.some(state => state === 'completed');
+    // Filter out N/A teams, only consider active team states
+    const activeStates = Object.values(initiative.teamStates)
+        .filter(state => state !== 'not-applicable');
+    const hasUncommitted = activeStates.some(state => state === 'uncommitted');
+    const hasCommitted = activeStates.some(state => state === 'committed');
+    const hasCompleted = activeStates.some(state => state === 'completed');
 
     if (!hasUncommitted) {
-        return '#27ae60'; // Green: All committed
+        return '#27ae60'; // Green: All active teams committed
     } else if (hasCommitted || hasCompleted) {
         return '#f39c12'; // Yellow: Partially committed
     } else {
@@ -920,10 +922,12 @@ function createInitiativeRow(initiative, teamColorCache) {
     const uncommittedCol = createStateColumn('uncommitted', initiative, teamColorCache);
     const committedCol = createStateColumn('committed', initiative, teamColorCache);
     const completedCol = createStateColumn('completed', initiative, teamColorCache);
+    const naCol = createStateColumn('not-applicable', initiative, teamColorCache);
 
     body.appendChild(uncommittedCol);
     body.appendChild(committedCol);
     body.appendChild(completedCol);
+    body.appendChild(naCol);
 
     // Assemble row
     row.appendChild(header);
@@ -940,7 +944,8 @@ function createStateColumn(state, initiative, teamColorCache) {
 
     const header = document.createElement('div');
     header.className = 'state-column-header';
-    header.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+    // Display "N/A" for not-applicable state
+    header.textContent = state === 'not-applicable' ? 'N/A' : state.charAt(0).toUpperCase() + state.slice(1);
     col.appendChild(header);
 
     // Add team tags for this state
@@ -1216,14 +1221,16 @@ function renderInitiativesSummary(teamColorCache) {
     const uncommittedInitiatives = [];
 
     appState.initiatives.forEach(initiative => {
-        const states = Object.values(initiative.teamStates);
-        const hasUncommitted = states.some(state => state === 'uncommitted');
+        // Filter out N/A teams (not-applicable), only consider active team states
+        const activeStates = Object.values(initiative.teamStates)
+            .filter(state => state !== 'not-applicable');
+        const hasUncommitted = activeStates.some(state => state === 'uncommitted');
 
         if (!hasUncommitted) {
-            // All teams committed or completed - goes to quarter section
+            // All active teams committed or completed - goes to quarter section
             committedInitiatives.push(initiative);
         } else {
-            // At least one team uncommitted - goes to next section
+            // At least one active team uncommitted - goes to next section
             uncommittedInitiatives.push(initiative);
         }
     });
@@ -1281,11 +1288,12 @@ function renderInitiativesSummary(teamColorCache) {
         nameCell.textContent = initiative.name;
         row.appendChild(nameCell);
 
-        // Status cell with traffic light system
+        // Status cell with traffic light system (ignore N/A teams)
         const statusCell = document.createElement('td');
-        const states = Object.values(initiative.teamStates);
-        const hasCommitted = states.some(state => state === 'committed');
-        const hasCompleted = states.some(state => state === 'completed');
+        const activeStates = Object.values(initiative.teamStates)
+            .filter(state => state !== 'not-applicable');
+        const hasCommitted = activeStates.some(state => state === 'committed');
+        const hasCompleted = activeStates.some(state => state === 'completed');
 
         if (hasCommitted || hasCompleted) {
             // Green: Some teams committed/completed, work can proceed
