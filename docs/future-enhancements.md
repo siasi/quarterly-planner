@@ -80,6 +80,7 @@
 - **Implemented:** Side-by-side layout with visual separation
 - **Design:** Team name bold 16px dark gray | Capacity count 14px capacity-colored
 - **Result:** Team name always readable, capacity indicator visually distinct
+- **Commit:** 7470744 - Flexbox layout separates name from capacity with clear visual hierarchy
 
 ## Implementation Notes
 
