@@ -294,7 +294,6 @@
             font-weight: bold;
             color: #666;
             margin-bottom: 8px;
-            text-transform: uppercase;
         }
 
         .team-tag {
@@ -476,7 +475,7 @@
             color: #ffffff;
             padding: 12px 16px;
             border-radius: 6px;
-            max-width: 300px;
+            max-width: 450px;
             font-size: 13px;
             line-height: 1.5;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1223,15 +1222,15 @@ function initializeEventListeners() {
 function initializeSectionHeaderTooltips() {
     // Initiatives and Team Commitment
     const initiativeHeader = document.querySelector('.initiative-section h2');
-    attachTooltip(initiativeHeader, 'Manage your quarterly initiatives and track which teams are involved. Drag team tags between columns to update their commitment status. The colored left border shows overall initiative status: green (all teams committed), yellow (partially committed), red (not started).');
+    attachTooltip(initiativeHeader, 'Manage your quarterly initiatives and track teams commitment. Drag team tags between columns to update their commitment status. The colored left border shows overall initiative status: green (all teams committed), yellow (partially committed), red (no team commited).');
 
     // Team Summary
     const teamSummaryHeader = document.querySelector('.team-summary-section h2');
-    attachTooltip(teamSummaryHeader, 'Shows the current workload for each team. The number (e.g., "3/5") indicates committed initiatives versus your maximum threshold. Green headers mean the team has capacity, red means they\'re at or over capacity. Only committed and uncommitted initiatives are shown here.');
+    attachTooltip(teamSummaryHeader, 'Shows the current ask for each team. The number (e.g., "3/5") indicates committed initiatives versus your maximum threshold. Green headers mean the team is below threashold, red means they\'re at or over it. Only committed and uncommitted initiatives are shown here.');
 
     // Next section
     const nextHeader = document.querySelector('.next-section h2');
-    attachTooltip(nextHeader, 'Initiatives that still have uncommitted teams. These are being discussed but not yet fully committed. The status shows whether work can proceed (some teams committed) or is blocked (no teams committed).');
+    attachTooltip(nextHeader, 'Initiatives that still have uncommitted teams. These are being discussed but not yet fully committed. The status shows whether work can proceed, but with no chance to complete yet (only some teams committed) or is blocked (no teams committed).');
 }
 
 /**
@@ -1240,15 +1239,15 @@ function initializeSectionHeaderTooltips() {
 function initializeHeaderControlTooltips() {
     // Quarter input
     const quarterLabel = document.getElementById('quarterLabel');
-    attachTooltip(quarterLabel, 'The planning period (e.g., "Q1 2026"). This appears in section headers and ETA suggestions. Click to edit.');
+    attachTooltip(quarterLabel, 'The planning period (e.g., "Q1 2026"). Click to edit.');
 
     // Max Initiatives input
     const maxInitiativesLabel = document.getElementById('maxInitiativesLabel');
-    attachTooltip(maxInitiativesLabel, 'The maximum number of committed initiatives before a team is considered overcommitted. Used to highlight capacity issues in the Team Summary.');
+    attachTooltip(maxInitiativesLabel, 'The maximum number of committed initiatives before to flag a concentration of asks. Used to highlight high requests for a team in the Team Summary.');
 
     // Export button
     const exportBtn = document.getElementById('exportBtn');
-    attachTooltip(exportBtn, 'Download your current planning data as a JSON file. Use this to share with stakeholders or back up your work.');
+    attachTooltip(exportBtn, 'Download your current planning data as a JSON file. Use this to share your changes with colleagues (this is an MVP to get feedback about the value of this approach).');
 
     // Import button
     const importBtn = document.getElementById('importBtn');
@@ -1329,7 +1328,7 @@ function createInitiativeRowContainer(initiative) {
     const statusTooltips = {
         [COLORS.GREEN]: '🟢 Green: All teams committed',
         [COLORS.YELLOW]: '🟡 Yellow: Partially committed',
-        [COLORS.RED]: '🔴 Red: Not started'
+        [COLORS.RED]: '🔴 Red: No team committed'
     };
     row.title = statusTooltips[statusColor] || '';
 
@@ -1357,7 +1356,7 @@ function createInitiativeHeader(initiative, row) {
     grip.innerHTML = '⋮⋮';
     grip.draggable = true;
     grip.setAttribute('aria-label', 'Drag to reorder initiative');
-    grip.title = 'Drag to reorder initiatives';
+    grip.title = 'Drag to change initiatives\' priority';
     grip.addEventListener('dragstart', (e) => handleRowDragStart(e, row));
     grip.addEventListener('dragend', (e) => handleRowDragEnd(e, row));
 
@@ -1818,9 +1817,9 @@ function renderNextSection(initiatives, teamColorCache) {
         const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
         if (hasCommitted || hasCompleted) {
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed" title="Some teams are committed, work can start">✓ Can Proceed</span>';
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed" title="Some teams are committed, work can proceed">✓ Can Proceed</span>';
         } else {
-            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked" title="No teams committed yet">⏸ Blocked</span>';
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked" title="No teams committed yet, work is blocked">⏸ Blocked</span>';
         }
         row.appendChild(statusCell);
 
@@ -1857,7 +1856,7 @@ function renderInitiativesSummary(teamColorCache) {
     }
 
     // Add tooltip
-    attachTooltip(quarterTitle, 'Initiatives where all teams have committed or completed their work. These are the confirmed deliverables for this quarter. Add target completion dates in the ETA column.');
+    attachTooltip(quarterTitle, 'Initiatives that can make progress in this quarter and that are the next to be completed, as they have commitment from all requiried teams. You can capture an ETA that depends by estimations. Use this view to communicate where you are putting your effort, to get things done, and what you expect will be completed soon.');
 
     // Split initiatives and render both sections
     const { committed, uncommitted } = splitInitiativesByCommitment();
@@ -1903,9 +1902,9 @@ function createTeamColumn(team, teamColorCache) {
 
     // Add tooltip explaining color
     const capacityTooltips = {
-        [COLORS.GREEN]: '🟢 Green: Team has capacity',
-        [COLORS.YELLOW]: '🟡 Yellow: Team has some commits',
-        [COLORS.RED]: '🔴 Red: Team at/over capacity'
+        [COLORS.GREEN]: '🟢 Green: Team has no committment',
+        [COLORS.YELLOW]: '🟡 Yellow: Team has some committment, below threshold',
+        [COLORS.RED]: '🔴 Red: Team has some committment, at/over threshold'
     };
     capacitySpan.title = capacityTooltips[teamColor] || '';
 
