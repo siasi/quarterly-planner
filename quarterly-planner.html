@@ -668,6 +668,28 @@ function formatStateName(state) {
 }
 
 /**
+ * Create an info icon with tooltip
+ * @param {string} tooltipText - The tooltip content
+ * @param {boolean} compact - Use compact styling for visual indicators
+ * @returns {HTMLElement} The info icon element with tooltip
+ */
+function createInfoIcon(tooltipText, compact = false) {
+    const icon = document.createElement('span');
+    icon.className = 'info-icon';
+    icon.tabIndex = 0;
+    icon.textContent = 'ⓘ';
+    icon.setAttribute('aria-label', 'More information');
+
+    const tooltip = document.createElement('span');
+    tooltip.className = compact ? 'tooltip tooltip-compact' : 'tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.textContent = tooltipText;
+
+    icon.appendChild(tooltip);
+    return icon;
+}
+
+/**
  * Generate incremental quarter names starting from a given quarter
  * @param {string} startQuarter - Starting quarter (e.g., "Q1 2026")
  * @param {number} count - Number of quarters to generate
