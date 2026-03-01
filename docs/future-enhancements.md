@@ -46,10 +46,14 @@
 - Update commitment status calculation to ignore N/A teams
 - Update CSS grid template columns (add 1 more column)
 
-### 4. Revisit Initiative Name Field
-- Review the current inline editing approach
-- Consider improvements to UX/UI
-- Evaluate if there are any issues with the current implementation
+### 4. ✅ Revisit Initiative Name Field (COMPLETED)
+- ~~Review the current inline editing approach~~
+- ~~Consider improvements to UX/UI~~
+- ~~Evaluate if there are any issues with the current implementation~~
+- **Problems Identified:** Names getting cut off (200px limit), hierarchy issue (name looked like data entry field)
+- **Implemented:** Restructured as section header with full width
+- **Design:** Bold, 18px font, header/body layout, hover/focus states
+- **Commit:** a20c7fc - Name now prominent as initiative title, no truncation
 
 ### 5. Revisit Delete Button Color
 - Review current delete button styling (red background, white ×)
