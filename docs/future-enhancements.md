@@ -55,10 +55,13 @@
 - **Design:** Bold, 18px font, header/body layout, hover/focus states
 - **Commit:** a20c7fc - Name now prominent as initiative title, no truncation
 
-### 5. Revisit Delete Button Color
-- Review current delete button styling (red background, white ×)
-- Consider alternative color schemes or visual treatments
-- Ensure good contrast and visibility
+### 5. ✅ Revisit Delete Button Color (COMPLETED)
+- ~~Review current delete button styling (red background, white ×)~~
+- ~~Consider alternative color schemes or visual treatments~~
+- ~~Ensure good contrast and visibility~~
+- **Problem Identified:** Red confused with team status colors, button too large (40px)
+- **Implemented:** Subtle gray button (#95a5a6), reduced to 30px, darker hover state
+- **Commit:** 344c7ba - Clear distinction between controls and status indicators
 
 ### 6. Team Management UI
 - Add ability to create new teams via UI (currently requires JSON editing)
