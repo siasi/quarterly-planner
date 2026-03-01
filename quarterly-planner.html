@@ -876,34 +876,43 @@ function initializeClearButton() {
     clearBtn.addEventListener('click', clearAllData);
 }
 
-// Calculate team colors once and cache them (performance optimization)
-function calculateTeamColors() {
-    const cache = {};
-    const threshold = appState.maxInitiativesPerTeam;
+// === COLOR CALCULATION ===
 
-    appState.teams.forEach(team => {
-        const committedCount = appState.initiatives.filter(initiative =>
-            initiative.teamStates[team.id] === TEAM_STATES.COMMITTED
-        ).length;
-
-        cache[team.id] = calculateTeamCapacityColor(committedCount, threshold);
-    });
-
-    return cache;
-}
-
-// Get team color from cache (fallback to direct calculation if needed)
-function getTeamColor(teamId, colorCache = null) {
-    if (colorCache && colorCache[teamId]) {
-        return colorCache[teamId];
-    }
-
-    // Fallback: direct calculation (for backward compatibility)
+/**
+ * Calculate team color directly without caching
+ * @param {string} teamId - The team ID
+ * @returns {string} Color hex code
+ */
+function getTeamColorDirect(teamId) {
     const committedCount = appState.initiatives.filter(initiative =>
         initiative.teamStates[teamId] === TEAM_STATES.COMMITTED
     ).length;
 
     return calculateTeamCapacityColor(committedCount, appState.maxInitiativesPerTeam);
+}
+
+/**
+ * Calculate team colors once and cache them (performance optimization)
+ * @returns {Object} Cache object mapping team IDs to colors
+ */
+function calculateTeamColors() {
+    const cache = {};
+
+    appState.teams.forEach(team => {
+        cache[team.id] = getTeamColorDirect(team.id);
+    });
+
+    return cache;
+}
+
+/**
+ * Get team color from cache or calculate directly
+ * @param {string} teamId - The team ID
+ * @param {Object} colorCache - Optional cached colors object
+ * @returns {string} Color hex code
+ */
+function getTeamColor(teamId, colorCache = null) {
+    return colorCache?.[teamId] || getTeamColorDirect(teamId);
 }
 
 // Initialize all event listeners (called once on app load)
