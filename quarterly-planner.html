@@ -725,6 +725,47 @@ function getInitiativeName(initiativeId) {
 }
 
 /**
+ * Analyze all initiatives and detect priority inversions
+ * Returns a map of conflicts for each initiative
+ * @returns {Object} Map of {initiativeId: {blockedBy: [], blocking: []}}
+ */
+function analyzePriorityConflicts() {
+    const conflictMap = {};
+
+    // Initialize map for all initiatives
+    appState.initiatives.forEach(initiative => {
+        conflictMap[initiative.id] = { blockedBy: [], blocking: [] };
+    });
+
+    // Check each initiative against higher priority initiatives
+    appState.initiatives.forEach((currentInit, currentIndex) => {
+        // Skip if current initiative is blocked (not progressing)
+        if (getInitiativeStatus(currentInit) === 'blocked') {
+            return;
+        }
+
+        const currentCommittedTeams = getCommittedTeams(currentInit);
+
+        // Check all higher priority initiatives (lower indices)
+        for (let i = 0; i < currentIndex; i++) {
+            const higherPriorityInit = appState.initiatives[i];
+            const uncommittedTeams = getUncommittedTeams(higherPriorityInit);
+
+            // Check for team overlap
+            const hasOverlap = hasTeamOverlap(currentCommittedTeams, uncommittedTeams);
+
+            if (hasOverlap) {
+                // Record the conflict
+                conflictMap[higherPriorityInit.id].blockedBy.push(currentInit.id);
+                conflictMap[currentInit.id].blocking.push(higherPriorityInit.id);
+            }
+        }
+    });
+
+    return conflictMap;
+}
+
+/**
  * Create an info icon with tooltip
  * @param {string} tooltipText - The tooltip content
  * @param {boolean} compact - Use compact styling for visual indicators
