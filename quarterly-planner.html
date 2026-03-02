@@ -477,7 +477,7 @@
             padding: 12px 16px;
             border-radius: 6px;
             width: max-content;
-            max-width: 600px;
+            max-width: min(600px, calc(100vw - 40px));
             font-size: 13px;
             line-height: 1.5;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1080,62 +1080,39 @@ function showTooltip(icon, method = 'click') {
     tooltipOpenMethod = method;
 
     // Smart positioning to keep tooltip within viewport
-    requestAnimationFrame(() => {
+    setTimeout(() => {
+        const tooltipRect = tooltip.getBoundingClientRect();
         const iconRect = icon.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
-        const iconCenter = iconRect.left + (iconRect.width / 2);
 
-        // Reset positioning
-        tooltip.style.left = '50%';
-        tooltip.style.right = 'auto';
-        tooltip.style.transform = 'translateX(-50%)';
+        // Calculate if tooltip goes off edges
+        const offLeft = Math.max(0, 20 - tooltipRect.left);
+        const offRight = Math.max(0, tooltipRect.right - (viewportWidth - 20));
 
-        // Force reflow to get accurate measurements
-        tooltip.offsetHeight;
-
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const tooltipWidth = tooltipRect.width;
-
-        // Check if tooltip fits centered
-        const wouldFitCentered = (tooltipRect.left >= 10) && (tooltipRect.right <= viewportWidth - 10);
-
-        if (!wouldFitCentered) {
-            // Determine if icon is closer to left or right edge
-            const distanceFromLeft = iconCenter;
-            const distanceFromRight = viewportWidth - iconCenter;
-
-            if (distanceFromLeft < distanceFromRight) {
-                // Icon is on left side - align tooltip to left edge of viewport
-                const iconOffset = iconRect.left;
-                tooltip.style.left = (10 - iconOffset) + 'px';
-                tooltip.style.transform = 'none';
-
-                // Position arrow to point at icon
-                requestAnimationFrame(() => {
-                    const arrowLeft = iconCenter - 10;
-                    tooltip.style.setProperty('--arrow-left', Math.max(20, arrowLeft) + 'px');
-                    tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
-                });
-            } else {
-                // Icon is on right side - align tooltip to right edge of viewport
-                const iconOffset = iconRect.left;
-                tooltip.style.left = (viewportWidth - 10 - tooltipWidth - iconOffset) + 'px';
-                tooltip.style.transform = 'none';
-
-                // Position arrow to point at icon
-                requestAnimationFrame(() => {
-                    const tooltipLeft = viewportWidth - 10 - tooltipWidth;
-                    const arrowLeft = iconCenter - tooltipLeft;
-                    tooltip.style.setProperty('--arrow-left', Math.min(tooltipWidth - 20, arrowLeft) + 'px');
-                    tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
-                });
-            }
-        } else {
-            // Centered position works
-            tooltip.style.setProperty('--arrow-left', '50%');
-            tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
+        if (offLeft > 0) {
+            // Shift right to stay within viewport
+            tooltip.style.transform = `translateX(calc(-50% + ${offLeft}px))`;
+        } else if (offRight > 0) {
+            // Shift left to stay within viewport
+            tooltip.style.transform = `translateX(calc(-50% - ${offRight}px))`;
         }
-    });
+
+        // Update arrow position to point at icon
+        setTimeout(() => {
+            const finalTooltipRect = tooltip.getBoundingClientRect();
+            const iconCenter = iconRect.left + (iconRect.width / 2);
+            const tooltipLeft = finalTooltipRect.left;
+            const arrowLeft = iconCenter - tooltipLeft;
+
+            // Constrain arrow to stay within tooltip bounds
+            const minArrow = 20;
+            const maxArrow = finalTooltipRect.width - 20;
+            const constrainedArrow = Math.max(minArrow, Math.min(maxArrow, arrowLeft));
+
+            tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
+            tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
+        }, 0);
+    }, 0);
 }
 
 /**
