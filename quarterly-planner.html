@@ -1394,12 +1394,42 @@ function showConflictTooltip(element, message) {
     tooltip.style.opacity = '1';
     tooltip.style.zIndex = '10000';
 
-    // Position tooltip near the clicked element
-    const rect = element.getBoundingClientRect();
-    tooltip.style.left = rect.left + 'px';
-    tooltip.style.top = (rect.bottom + 8) + 'px';
-
     document.body.appendChild(tooltip);
+
+    // Position tooltip with arrow pointing at the warning icon
+    setTimeout(() => {
+        const iconRect = element.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+
+        // Get tooltip dimensions
+        tooltip.style.left = '0';
+        tooltip.style.top = '0';
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const tooltipWidth = tooltipRect.width;
+
+        // Calculate ideal centered position below icon
+        const iconCenterX = iconRect.left + (iconRect.width / 2);
+        const idealLeft = iconCenterX - (tooltipWidth / 2);
+        const tooltipTop = iconRect.bottom + 10;
+
+        // Constrain to viewport with 20px margins
+        const minLeft = 20;
+        const maxLeft = viewportWidth - tooltipWidth - 20;
+        const finalLeft = Math.max(minLeft, Math.min(maxLeft, idealLeft));
+
+        // Apply position
+        tooltip.style.left = finalLeft + 'px';
+        tooltip.style.top = tooltipTop + 'px';
+
+        // Position arrow to point at icon center
+        const arrowLeft = iconCenterX - finalLeft;
+        const minArrow = 20;
+        const maxArrow = tooltipWidth - 20;
+        const constrainedArrow = Math.max(minArrow, Math.min(maxArrow, arrowLeft));
+
+        tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
+        tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
+    }, 0);
 
     // Close on click outside
     setTimeout(() => {
