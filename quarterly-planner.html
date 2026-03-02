@@ -2013,8 +2013,9 @@ function splitInitiativesByCommitment() {
  * Render committed initiatives in the quarter section
  * @param {Array} initiatives - Array of committed initiatives
  * @param {Object} teamColorCache - Cached team colors
+ * @param {Object} conflictMap - The complete conflict map
  */
-function renderQuarterSection(initiatives, teamColorCache) {
+function renderQuarterSection(initiatives, teamColorCache, conflictMap) {
     const quarterBody = document.getElementById('quarterBody');
     quarterBody.innerHTML = '';
 
@@ -2024,6 +2025,10 @@ function renderQuarterSection(initiatives, teamColorCache) {
         // Initiative name cell
         const nameCell = document.createElement('td');
         nameCell.textContent = initiative.name;
+
+        // Add conflict indicator if conflicts exist
+        addConflictIndicator(nameCell, initiative, conflictMap);
+
         row.appendChild(nameCell);
 
         // Contributing teams cell
