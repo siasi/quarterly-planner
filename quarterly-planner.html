@@ -1087,17 +1087,19 @@ function showTooltip(icon, method = 'click') {
 
         // Reset any previous positioning adjustments
         tooltip.style.left = '50%';
+        tooltip.style.right = 'auto';
         tooltip.style.transform = 'translateX(-50%)';
         tooltip.style.setProperty('--arrow-left', '50%');
         tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
 
         // Check if tooltip goes off the right edge
         if (tooltipRect.right > viewportWidth - 10) {
-            tooltip.style.left = 'auto';
-            tooltip.style.right = '0';
-            tooltip.style.transform = 'none';
+            // Calculate how much to shift left to fit in viewport
+            const overflow = tooltipRect.right - viewportWidth + 10;
+            tooltip.style.left = '50%';
+            tooltip.style.transform = `translateX(calc(-50% - ${overflow}px))`;
 
-            // Recalculate after repositioning
+            // Recalculate arrow position
             requestAnimationFrame(() => {
                 const newTooltipRect = tooltip.getBoundingClientRect();
                 const iconCenter = iconRect.left + (iconRect.width / 2);
@@ -1109,10 +1111,12 @@ function showTooltip(icon, method = 'click') {
         }
         // Check if tooltip goes off the left edge
         else if (tooltipRect.left < 10) {
-            tooltip.style.left = '0';
-            tooltip.style.transform = 'none';
+            // Calculate how much to shift right to fit in viewport
+            const overflow = 10 - tooltipRect.left;
+            tooltip.style.left = '50%';
+            tooltip.style.transform = `translateX(calc(-50% + ${overflow}px))`;
 
-            // Recalculate after repositioning
+            // Recalculate arrow position
             requestAnimationFrame(() => {
                 const newTooltipRect = tooltip.getBoundingClientRect();
                 const iconCenter = iconRect.left + (iconRect.width / 2);
