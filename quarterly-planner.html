@@ -502,8 +502,8 @@
             content: '';
             position: absolute;
             bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
+            left: var(--arrow-left, 50%);
+            transform: var(--arrow-transform, translateX(-50%));
             border: 6px solid transparent;
             border-bottom-color: #2c3e50;
         }
@@ -1081,22 +1081,33 @@ function showTooltip(icon, method = 'click') {
 
     // Smart positioning to keep tooltip within viewport
     const tooltipRect = tooltip.getBoundingClientRect();
+    const iconRect = icon.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
 
     // Reset any previous positioning adjustments
     tooltip.style.left = '50%';
     tooltip.style.transform = 'translateX(-50%)';
+    tooltip.style.setProperty('--arrow-left', '50%');
+    tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
 
     // Check if tooltip goes off the right edge
     if (tooltipRect.right > viewportWidth - 10) {
         tooltip.style.left = 'auto';
         tooltip.style.right = '0';
         tooltip.style.transform = 'none';
+        // Position arrow to point to the icon
+        const arrowLeft = iconRect.left + (iconRect.width / 2) - tooltipRect.right + tooltip.offsetWidth;
+        tooltip.style.setProperty('--arrow-left', arrowLeft + 'px');
+        tooltip.style.setProperty('--arrow-transform', 'translateX(0)');
     }
     // Check if tooltip goes off the left edge
     else if (tooltipRect.left < 10) {
         tooltip.style.left = '0';
         tooltip.style.transform = 'none';
+        // Position arrow to point to the icon
+        const arrowLeft = iconRect.left + (iconRect.width / 2) - tooltipRect.left;
+        tooltip.style.setProperty('--arrow-left', arrowLeft + 'px');
+        tooltip.style.setProperty('--arrow-transform', 'translateX(0)');
     }
 }
 
