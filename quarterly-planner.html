@@ -1372,7 +1372,7 @@ function initializeTooltips() {
 }
 
 /**
- * Show a click-triggered tooltip with conflict details
+ * Show a hover-triggered tooltip with conflict details
  * @param {HTMLElement} element - The element to attach tooltip to
  * @param {string} message - The tooltip message
  */
@@ -1430,17 +1430,16 @@ function showConflictTooltip(element, message) {
         tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
         tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
     }, 0);
+}
 
-    // Close on click outside
-    setTimeout(() => {
-        const closeHandler = (e) => {
-            if (!tooltip.contains(e.target) && !element.contains(e.target)) {
-                tooltip.remove();
-                document.removeEventListener('click', closeHandler);
-            }
-        };
-        document.addEventListener('click', closeHandler);
-    }, 100);
+/**
+ * Hide the conflict tooltip
+ */
+function hideConflictTooltip() {
+    const tooltip = document.querySelector('.conflict-tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
 }
 
 /**
@@ -1489,23 +1488,26 @@ function addConflictIndicator(nameCell, initiative, conflictMap) {
     const indicator = document.createElement('span');
     indicator.className = 'priority-conflict-indicator';
     indicator.textContent = '⚠';
-    indicator.title = 'Click to see priority conflicts';
+    indicator.title = 'Hover to see priority conflicts';
     indicator.setAttribute('aria-label', 'Priority conflict indicator');
     indicator.tabIndex = 0;  // Keyboard accessibility
 
-    // Add click handler
-    indicator.addEventListener('click', (e) => {
-        e.stopPropagation();
+    // Add hover handlers
+    indicator.addEventListener('mouseenter', () => {
         showConflictDetails(indicator, initiative, conflicts);
     });
 
-    // Add keyboard handler
-    indicator.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            showConflictDetails(indicator, initiative, conflicts);
-        }
+    indicator.addEventListener('mouseleave', () => {
+        hideConflictTooltip();
+    });
+
+    // Add keyboard handlers (focus/blur)
+    indicator.addEventListener('focus', () => {
+        showConflictDetails(indicator, initiative, conflicts);
+    });
+
+    indicator.addEventListener('blur', () => {
+        hideConflictTooltip();
     });
 
     // Prepend to name cell (before text)
