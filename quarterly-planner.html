@@ -1081,50 +1081,59 @@ function showTooltip(icon, method = 'click') {
 
     // Smart positioning to keep tooltip within viewport
     requestAnimationFrame(() => {
-        const tooltipRect = tooltip.getBoundingClientRect();
         const iconRect = icon.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
+        const iconCenter = iconRect.left + (iconRect.width / 2);
 
-        // Reset any previous positioning adjustments
+        // Reset positioning
         tooltip.style.left = '50%';
         tooltip.style.right = 'auto';
         tooltip.style.transform = 'translateX(-50%)';
-        tooltip.style.setProperty('--arrow-left', '50%');
-        tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
 
-        // Check if tooltip goes off the right edge
-        if (tooltipRect.right > viewportWidth - 10) {
-            // Calculate how much to shift left to fit in viewport
-            const overflow = tooltipRect.right - viewportWidth + 10;
-            tooltip.style.left = '50%';
-            tooltip.style.transform = `translateX(calc(-50% - ${overflow}px))`;
+        // Force reflow to get accurate measurements
+        tooltip.offsetHeight;
 
-            // Recalculate arrow position
-            requestAnimationFrame(() => {
-                const newTooltipRect = tooltip.getBoundingClientRect();
-                const iconCenter = iconRect.left + (iconRect.width / 2);
-                const tooltipLeft = newTooltipRect.left;
-                const arrowLeft = iconCenter - tooltipLeft;
-                tooltip.style.setProperty('--arrow-left', arrowLeft + 'px');
-                tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
-            });
-        }
-        // Check if tooltip goes off the left edge
-        else if (tooltipRect.left < 10) {
-            // Calculate how much to shift right to fit in viewport
-            const overflow = 10 - tooltipRect.left;
-            tooltip.style.left = '50%';
-            tooltip.style.transform = `translateX(calc(-50% + ${overflow}px))`;
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const tooltipWidth = tooltipRect.width;
 
-            // Recalculate arrow position
-            requestAnimationFrame(() => {
-                const newTooltipRect = tooltip.getBoundingClientRect();
-                const iconCenter = iconRect.left + (iconRect.width / 2);
-                const tooltipLeft = newTooltipRect.left;
-                const arrowLeft = iconCenter - tooltipLeft;
-                tooltip.style.setProperty('--arrow-left', arrowLeft + 'px');
-                tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
-            });
+        // Check if tooltip fits centered
+        const wouldFitCentered = (tooltipRect.left >= 10) && (tooltipRect.right <= viewportWidth - 10);
+
+        if (!wouldFitCentered) {
+            // Determine if icon is closer to left or right edge
+            const distanceFromLeft = iconCenter;
+            const distanceFromRight = viewportWidth - iconCenter;
+
+            if (distanceFromLeft < distanceFromRight) {
+                // Icon is on left side - align tooltip to left edge of viewport
+                const iconOffset = iconRect.left;
+                tooltip.style.left = (10 - iconOffset) + 'px';
+                tooltip.style.transform = 'none';
+
+                // Position arrow to point at icon
+                requestAnimationFrame(() => {
+                    const arrowLeft = iconCenter - 10;
+                    tooltip.style.setProperty('--arrow-left', Math.max(20, arrowLeft) + 'px');
+                    tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
+                });
+            } else {
+                // Icon is on right side - align tooltip to right edge of viewport
+                const iconOffset = iconRect.left;
+                tooltip.style.left = (viewportWidth - 10 - tooltipWidth - iconOffset) + 'px';
+                tooltip.style.transform = 'none';
+
+                // Position arrow to point at icon
+                requestAnimationFrame(() => {
+                    const tooltipLeft = viewportWidth - 10 - tooltipWidth;
+                    const arrowLeft = iconCenter - tooltipLeft;
+                    tooltip.style.setProperty('--arrow-left', Math.min(tooltipWidth - 20, arrowLeft) + 'px');
+                    tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
+                });
+            }
+        } else {
+            // Centered position works
+            tooltip.style.setProperty('--arrow-left', '50%');
+            tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
         }
     });
 }
