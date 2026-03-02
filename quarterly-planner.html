@@ -516,6 +516,8 @@
             margin-right: 6px;
             color: #f39c12;
             font-size: 16px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
             user-select: none;
             display: inline-block;
             transition: color 0.2s;
@@ -523,6 +525,21 @@
 
         .priority-conflict-indicator:hover {
             color: #e67e22;
+        }
+
+        .priority-conflict-indicator:focus {
+            outline: 2px solid #e67e22;
+            outline-offset: 2px;
+            color: #e67e22;
+        }
+
+        .priority-conflict-indicator:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        .priority-conflict-indicator:focus-visible {
+            outline: 2px solid #e67e22;
+            outline-offset: 2px;
         }
     </style>
 </head>
