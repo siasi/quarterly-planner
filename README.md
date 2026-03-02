@@ -42,16 +42,7 @@ Would flag the risk that a team is requested to much in terms of contribution to
 
 ## Usage
 
-The page is quite simple and tooltips explain how things work. However here you have some info.
-
-### Understanding the Interface
-
-The application includes helpful tooltips throughout:
-- **Info icons (ⓘ)**: Click or hover on these icons next to section headers and controls for detailed explanations
-- **Hover tooltips**: Hover over colored indicators and interactive elements for quick help
-- **Keyboard navigation**: Press Tab to navigate, Enter/Space to open tooltips, ESC to close
-
-All tooltips are designed to help first-time users understand the app without external documentation.
+All tooltips (info icons plus hover tooltips) are designed to help first-time users understand the app without external documentation.
 
 ### Header Controls
 
