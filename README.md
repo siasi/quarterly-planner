@@ -2,6 +2,15 @@
 
 A simple single-page web application for tracking team commitments across initiatives during quarterly planning.
 
+## How it the page is organised
+- The header has controls to setup the context, to import and export the data
+- The *Initiatives and Teams Commitment* section is where you operate and where you can capture initiatives priorities (sorting them) and committment per team and per initiatives. 
+- The *Teams Summary* page is where you have the view per team with initiatives they committed and they don't. Color code indicate teams that are requested too many contributions (see later color code). 
+- The *Commitment* section is where you can see the initiatives that can continue or start in the quarter and that could potentially be completed, based on team commitment. 
+- The *Next* section is where you see the initiatives that don't have commitment from all required teams and that completion has to be postponed. 
+
+## Color Code
+
 ## Features
 
 - **Drag-and-drop interface** for managing team states (Uncommitted → Committed → Completed)
@@ -11,6 +20,20 @@ A simple single-page web application for tracking team commitments across initia
 - **Export/Import** JSON files for sharing and archiving
 - **Zero dependencies** - runs entirely in the browser
 
+### Color Code for Initiatives
+
+Capture the possibility to complete the initiative, based on teams commitment
+🟢 Green: All teams committed
+🟡 Yellow: Partially committed
+🔴 Red: No team committed
+
+### Color Code for Teams
+
+Would flag the risk that a team is requested to much in terms of contribution to multiple initiatives. This is visualised comparing the number of initiatives the team commit, compared to a configurable threshold. 
+🟢 Green: Team has no committment
+🟡 Yellow: Team has some committment, below threshold
+🔴 Red: Team has some committment, at/over threshold 
+
 ## Getting Started
 
 1. Open `quarterly-planner.html` in any modern web browser
@@ -19,39 +42,31 @@ A simple single-page web application for tracking team commitments across initia
 
 ## Usage
 
-### Header Controls
+The page is quite simple and tooltips explain how things work. However here you have some info.
 
-- **Quarter Name**: Click to edit the planning period (e.g., "Q1 2026")
-- **Max Initiatives per Team**: Set the threshold for capacity warnings (default: 5)
-- **Export JSON**: Download current state as a JSON file
-- **Import JSON**: Load a previously exported file
-- **Clear All Data**: Reset to sample data
+### Understanding the Interface
+
+The application includes helpful tooltips throughout:
+- **Info icons (ⓘ)**: Click or hover on these icons next to section headers and controls for detailed explanations
+- **Hover tooltips**: Hover over colored indicators and interactive elements for quick help
+- **Keyboard navigation**: Press Tab to navigate, Enter/Space to open tooltips, ESC to close
+
+All tooltips are designed to help first-time users understand the app without external documentation.
+
+### Header Controls
 
 ### Managing Initiatives
 
 - **Add Initiative**: Click "+ Add Initiative" button (all teams start as Uncommitted)
 - **Edit Name**: Click the initiative name to edit inline
 - **Delete**: Click "Delete" button (with confirmation)
-- **Commitment Badge**: Shows "✓ All Committed" (green) when all teams are committed/completed, otherwise "⚠ Pending Commitment" (yellow)
-
-### Managing Team States
 
 Drag team tags between three columns:
 - **Uncommitted**: Team is being asked but hasn't committed
 - **Committed**: Team has committed to work on this initiative
 - **Completed**: Team has finished their work
 
-Changes save automatically.
-
-### Team Summary Panel
-
-Shows one column per team with:
-- Team name and committed count (e.g., "Backend Team (3/5)")
-- **Green header**: Under capacity
-- **Red header**: At or over capacity threshold
-- **Solid tags**: Committed initiatives
-- **Hollow tags**: Uncommitted initiatives
-- Completed initiatives are hidden (work is done)
+Changes save automatically (use the local storage).
 
 ### Managing Teams
 
