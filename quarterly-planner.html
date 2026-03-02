@@ -2066,8 +2066,9 @@ function renderQuarterSection(initiatives, teamColorCache) {
  * Render uncommitted initiatives in the next section
  * @param {Array} initiatives - Array of uncommitted initiatives
  * @param {Object} teamColorCache - Cached team colors
+ * @param {Object} conflictMap - The complete conflict map
  */
-function renderNextSection(initiatives, teamColorCache) {
+function renderNextSection(initiatives, teamColorCache, conflictMap) {
     const nextBody = document.getElementById('nextBody');
     nextBody.innerHTML = '';
 
@@ -2077,6 +2078,10 @@ function renderNextSection(initiatives, teamColorCache) {
         // Initiative name cell
         const nameCell = document.createElement('td');
         nameCell.textContent = initiative.name;
+
+        // Add conflict indicator if conflicts exist
+        addConflictIndicator(nameCell, initiative, conflictMap);
+
         row.appendChild(nameCell);
 
         // Status cell with traffic light system
