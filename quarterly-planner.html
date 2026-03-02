@@ -685,10 +685,12 @@ function getInitiativeStatus(initiative) {
  * @returns {Array<string>} Array of team IDs
  */
 function getCommittedTeams(initiative) {
-    return Object.keys(initiative.teamStates).filter(teamId => {
-        const state = initiative.teamStates[teamId];
-        return state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED;
-    });
+    return Object.keys(initiative.teamStates)
+        .filter(teamId => initiative.teamStates[teamId] !== TEAM_STATES.NOT_APPLICABLE)
+        .filter(teamId => {
+            const state = initiative.teamStates[teamId];
+            return state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED;
+        });
 }
 
 /**
@@ -697,10 +699,9 @@ function getCommittedTeams(initiative) {
  * @returns {Array<string>} Array of team IDs
  */
 function getUncommittedTeams(initiative) {
-    return Object.keys(initiative.teamStates).filter(teamId => {
-        const state = initiative.teamStates[teamId];
-        return state === TEAM_STATES.UNCOMMITTED;
-    });
+    return Object.keys(initiative.teamStates)
+        .filter(teamId => initiative.teamStates[teamId] !== TEAM_STATES.NOT_APPLICABLE)
+        .filter(teamId => initiative.teamStates[teamId] === TEAM_STATES.UNCOMMITTED);
 }
 
 /**
