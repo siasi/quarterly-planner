@@ -667,6 +667,63 @@ function formatStateName(state) {
 }
 
 /**
+ * Get the status of an initiative (blocked or can-proceed)
+ * @param {Object} initiative - The initiative object
+ * @returns {string} 'blocked' or 'can-proceed'
+ */
+function getInitiativeStatus(initiative) {
+    const activeStates = getActiveTeamStates(initiative);
+    const hasCommitted = activeStates.some(state =>
+        state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED
+    );
+    return hasCommitted ? 'can-proceed' : 'blocked';
+}
+
+/**
+ * Get array of team IDs that are committed or completed on an initiative
+ * @param {Object} initiative - The initiative object
+ * @returns {Array<string>} Array of team IDs
+ */
+function getCommittedTeams(initiative) {
+    return Object.keys(initiative.teamStates).filter(teamId => {
+        const state = initiative.teamStates[teamId];
+        return state === TEAM_STATES.COMMITTED || state === TEAM_STATES.COMPLETED;
+    });
+}
+
+/**
+ * Get array of team IDs that are uncommitted on an initiative
+ * @param {Object} initiative - The initiative object
+ * @returns {Array<string>} Array of team IDs
+ */
+function getUncommittedTeams(initiative) {
+    return Object.keys(initiative.teamStates).filter(teamId => {
+        const state = initiative.teamStates[teamId];
+        return state === TEAM_STATES.UNCOMMITTED;
+    });
+}
+
+/**
+ * Check if two arrays have any common elements
+ * @param {Array} array1 - First array
+ * @param {Array} array2 - Second array
+ * @returns {boolean} True if arrays have overlap
+ */
+function hasTeamOverlap(array1, array2) {
+    return array1.some(item => array2.includes(item));
+}
+
+/**
+ * Get initiative name by ID
+ * @param {string} initiativeId - The initiative ID
+ * @returns {string} Initiative name or 'Unknown Initiative'
+ */
+function getInitiativeName(initiativeId) {
+    const initiative = appState.initiatives.find(i => i.id === initiativeId);
+    return initiative ? initiative.name : 'Unknown Initiative';
+}
+
+/**
  * Create an info icon with tooltip
  * @param {string} tooltipText - The tooltip content
  * @param {boolean} compact - Use compact styling for visual indicators
