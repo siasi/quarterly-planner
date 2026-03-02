@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Test reports
+tooltip-test-report.md
