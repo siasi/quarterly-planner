@@ -276,6 +276,16 @@
             color: white;
         }
 
+        .badge-done {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
         .state-column {
             min-height: 60px;
             padding: 10px;
@@ -2127,12 +2137,14 @@ function renderNextSection(initiatives, teamColorCache, conflictMap) {
         const statusCell = document.createElement('td');
         const activeStates = getActiveTeamStates(initiative);
         const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
-        const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
+        const hasUncommitted = activeStates.some(state => state === TEAM_STATES.UNCOMMITTED);
 
-        if (hasCommitted || hasCompleted) {
+        if (hasCommitted) {
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-committed" title="Some teams are committed, work can proceed">✓ Can Proceed</span>';
-        } else {
+        } else if (hasUncommitted) {
             statusCell.innerHTML = '<span class="initiative-commitment-badge badge-blocked" title="No teams committed yet, work is blocked">⏸ Blocked</span>';
+        } else {
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-done" title="All participating teams have completed their work">✅ Done</span>';
         }
         row.appendChild(statusCell);
 
