@@ -1371,6 +1371,48 @@ function initializeTooltips() {
     }, true);
 }
 
+/**
+ * Show a click-triggered tooltip with conflict details
+ * @param {HTMLElement} element - The element to attach tooltip to
+ * @param {string} message - The tooltip message
+ */
+function showConflictTooltip(element, message) {
+    // Remove any existing conflict tooltip
+    const existingTooltip = document.querySelector('.conflict-tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip conflict-tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.textContent = message;
+    tooltip.style.position = 'fixed';
+    tooltip.style.display = 'block';
+    tooltip.style.visibility = 'visible';
+    tooltip.style.opacity = '1';
+    tooltip.style.zIndex = '10000';
+
+    // Position tooltip near the clicked element
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = rect.left + 'px';
+    tooltip.style.top = (rect.bottom + 8) + 'px';
+
+    document.body.appendChild(tooltip);
+
+    // Close on click outside
+    setTimeout(() => {
+        const closeHandler = (e) => {
+            if (!tooltip.contains(e.target) && !element.contains(e.target)) {
+                tooltip.remove();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        document.addEventListener('click', closeHandler);
+    }, 100);
+}
+
 // === INITIALIZATION ===
 
 // Initialize all event listeners (called once on app load)
