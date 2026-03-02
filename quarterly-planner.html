@@ -1413,6 +1413,75 @@ function showConflictTooltip(element, message) {
     }, 100);
 }
 
+/**
+ * Build and show conflict details message
+ * @param {HTMLElement} element - The element to attach tooltip to
+ * @param {Object} initiative - The initiative object
+ * @param {Object} conflicts - The conflicts object {blockedBy: [], blocking: []}
+ */
+function showConflictDetails(element, initiative, conflicts) {
+    let messages = [];
+
+    // Check if blocking higher priority initiatives
+    if (conflicts.blocking && conflicts.blocking.length > 0) {
+        const names = conflicts.blocking
+            .map(id => getInitiativeName(id))
+            .join(', ');
+        messages.push(`Blocking: ${names}`);
+    }
+
+    // Check if blocked by lower priority initiatives
+    if (conflicts.blockedBy && conflicts.blockedBy.length > 0) {
+        const names = conflicts.blockedBy
+            .map(id => getInitiativeName(id))
+            .join(', ');
+        messages.push(`Blocked by: ${names}`);
+    }
+
+    const message = messages.join(' | ');
+    showConflictTooltip(element, message);
+}
+
+/**
+ * Add conflict indicator to initiative name cell if conflicts exist
+ * @param {HTMLElement} nameCell - The table cell containing initiative name
+ * @param {Object} initiative - The initiative object
+ * @param {Object} conflictMap - The complete conflict map
+ */
+function addConflictIndicator(nameCell, initiative, conflictMap) {
+    const conflicts = conflictMap[initiative.id];
+
+    // Check if this initiative has any conflicts
+    if (!conflicts || (conflicts.blockedBy.length === 0 && conflicts.blocking.length === 0)) {
+        return;
+    }
+
+    const indicator = document.createElement('span');
+    indicator.className = 'priority-conflict-indicator';
+    indicator.textContent = '⚠️';
+    indicator.title = 'Click to see priority conflicts';
+    indicator.setAttribute('aria-label', 'Priority conflict indicator');
+    indicator.tabIndex = 0;  // Keyboard accessibility
+
+    // Add click handler
+    indicator.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showConflictDetails(indicator, initiative, conflicts);
+    });
+
+    // Add keyboard handler
+    indicator.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            showConflictDetails(indicator, initiative, conflicts);
+        }
+    });
+
+    // Prepend to name cell (before text)
+    nameCell.insertBefore(indicator, nameCell.firstChild);
+}
+
 // === INITIALIZATION ===
 
 // Initialize all event listeners (called once on app load)
