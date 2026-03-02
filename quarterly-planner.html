@@ -1554,9 +1554,10 @@ function initializeApp() {
 function render() {
     // Calculate team colors once for entire render cycle (performance optimization)
     const teamColorCache = calculateTeamColors();
+    const conflictMap = analyzePriorityConflicts();
     updateHeaderControls();
     renderInitiatives(teamColorCache);
-    renderInitiativesSummary(teamColorCache);
+    renderInitiativesSummary(teamColorCache, conflictMap);
     renderTeamSummary(teamColorCache);
 }
 
@@ -2111,8 +2112,9 @@ function renderNextSection(initiatives, teamColorCache) {
 /**
  * Render initiatives summary (Quarter Commitment and Next sections)
  * @param {Object} teamColorCache - Cached team colors
+ * @param {Object} conflictMap - The complete conflict map
  */
-function renderInitiativesSummary(teamColorCache) {
+function renderInitiativesSummary(teamColorCache, conflictMap) {
     // Update quarter section title with tooltip
     const quarterTitle = document.getElementById('quarterSectionTitle');
     quarterTitle.textContent = appState.quarter + ' Commitment';
@@ -2128,8 +2130,8 @@ function renderInitiativesSummary(teamColorCache) {
 
     // Split initiatives and render both sections
     const { committed, uncommitted } = splitInitiativesByCommitment();
-    renderQuarterSection(committed, teamColorCache);
-    renderNextSection(uncommitted, teamColorCache);
+    renderQuarterSection(committed, teamColorCache, conflictMap);
+    renderNextSection(uncommitted, teamColorCache, conflictMap);
 }
 
 function renderTeamSummary(teamColorCache) {
