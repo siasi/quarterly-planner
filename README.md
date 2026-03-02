@@ -2,7 +2,7 @@
 
 A simple single-page web application for tracking team commitments across initiatives during quarterly planning.
 
-## How it the page is organised
+## How the page is organised
 - The header has controls to setup the context, to import and export the data
 - The *Initiatives and Teams Commitment* section is where you operate and where you can capture initiatives priorities (sorting them) and committment per team and per initiatives. 
 - The *Teams Summary* page is where you have the view per team with initiatives they committed and they don't. Color code indicate teams that are requested too many contributions (see later color code). 
@@ -16,6 +16,7 @@ A simple single-page web application for tracking team commitments across initia
 - **Drag-and-drop interface** for managing team states (Uncommitted → Committed → Completed)
 - **Visual capacity warnings** when teams are overcommitted
 - **Initiative commitment tracking** shows which initiatives have full team buy-in
+- **Priority inversion warnings** automatically detect when teams are working on lower priority initiatives while higher priority work waits
 - **Auto-save** to browser localStorage
 - **Export/Import** JSON files for sharing and archiving
 - **Zero dependencies** - runs entirely in the browser
@@ -23,16 +24,23 @@ A simple single-page web application for tracking team commitments across initia
 ### Color Code for Initiatives
 
 Capture the possibility to complete the initiative, based on teams commitment
-🟢 Green: All teams committed
-🟡 Yellow: Partially committed
-🔴 Red: No team committed
+- 🟢 Green: All teams committed
+- 🟡 Yellow: Partially committed
+- 🔴 Red: No team committed
 
 ### Color Code for Teams
 
-Would flag the risk that a team is requested to much in terms of contribution to multiple initiatives. This is visualised comparing the number of initiatives the team commit, compared to a configurable threshold. 
-🟢 Green: Team has no committment
-🟡 Yellow: Team has some committment, below threshold
-🔴 Red: Team has some committment, at/over threshold 
+Would flag the risk that a team is requested to much in terms of contribution to multiple initiatives. This is visualised comparing the number of initiatives the team commit, compared to a configurable threshold.
+- 🟢 Green: Team has no committment
+- 🟡 Yellow: Team has some committment, below threshold
+- 🔴 Red: Team has some committment, at/over threshold
+
+### Priority Inversion Indicators
+
+⚠ Warning: Indicates priority conflicts
+- **In Next section:** Higher priority initiatives blocked while lower priority initiatives progress
+- **In Quarter Commitment:** Lower priority initiatives consuming resources needed by higher priority work
+- Hover over the ⚠ icon to see which initiatives are involved in the conflict 
 
 ## Getting Started
 

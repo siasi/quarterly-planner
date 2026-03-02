@@ -20,10 +20,10 @@
 - **Commit:** 96ef5c6 - Reordering affects all sections (Initiatives, Quarter Commitment, Next, Team Summary)
 
 ### 3. ✅ Team Non-Contribution Concept (COMPLETED)
-- Introduce the idea that a team may not be contributing to an initiative at all
-- This is different from uncommitted/committed/completed states
-- Consider use cases: some initiatives don't need certain teams
-- May need a new state or way to indicate "not applicable" for a team
+- ~~Introduce the idea that a team may not be contributing to an initiative at all~~
+- ~~This is different from uncommitted/committed/completed states~~
+- ~~Consider use cases: some initiatives don't need certain teams~~
+- ~~May need a new state or way to indicate "not applicable" for a team~~
 
 **Design Decisions:**
 - **Visual Representation:** 4th column "Not Applicable" or "N/A" in initiative rows
@@ -81,6 +81,17 @@
 - **Design:** Team name bold 16px dark gray | Capacity count 14px capacity-colored
 - **Result:** Team name always readable, capacity indicator visually distinct
 - **Commit:** 7470744 - Flexbox layout separates name from capacity with clear visual hierarchy
+
+### 8. ✅ Priority-Based Visual Signals in Next Section (COMPLETED)
+- ~~Add color coding to signal the relationship between initiative priority and status~~
+- ~~Show when highest priority initiatives are blocked vs progressing~~
+- ~~Show when lower priority initiatives are progressing vs blocked~~
+- ~~Consider: Color-coded borders, backgrounds, or status indicators~~
+- ~~Goal: Make priority/status conflicts immediately visible~~
+- **Implemented:** ⚠ indicators on initiative names with hover-triggered tooltips
+- **Design:** Detects when higher priority initiatives need teams that are committed to lower priority work
+- **Interaction:** Hover over indicator to see list of conflicting initiatives
+- **Commit:** c91b5a7 (and related commits)
 
 ## Implementation Notes
 
