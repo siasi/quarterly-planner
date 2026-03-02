@@ -2,91 +2,91 @@
 
 A simple single-page web application for tracking team commitments across initiatives during quarterly planning.
 
-## How the page is organised
-- The header has controls to setup the context, to import and export the data
-- The *Initiatives and Teams Commitment* section is where you operate and where you can capture initiatives priorities (sorting them) and committment per team and per initiatives. 
-- The *Teams Summary* page is where you have the view per team with initiatives they committed and they don't. Color code indicate teams that are requested too many contributions (see later color code). 
-- The *Commitment* section is where you can see the initiatives that can continue or start in the quarter and that could potentially be completed, based on team commitment. 
-- The *Next* section is where you see the initiatives that don't have commitment from all required teams and that completion has to be postponed. 
-
-## Color Code
-
 ## Features
 
 - **Drag-and-drop interface** for managing team states (Uncommitted → Committed → Completed)
-- **Visual capacity warnings** when teams are overcommitted
-- **Initiative commitment tracking** shows which initiatives have full team buy-in
-- **Priority inversion warnings** automatically detect when teams are working on lower priority initiatives while higher priority work waits
+- **Priority-based sorting** - reorder initiatives to set priorities
+- **4-color status system** - visual indicators show initiative progress at a glance
+- **Priority inversion warnings** - alerts when teams work on lower priority initiatives while higher priority work waits
+- **Capacity tracking** - visual warnings when teams are overcommitted
 - **Auto-save** to browser localStorage
 - **Export/Import** JSON files for sharing and archiving
 - **Zero dependencies** - runs entirely in the browser
 
-### Color Code for Initiatives
+## Color Code
 
-Capture the possibility to complete the initiative, based on teams commitment
-- 🟢 Green: All teams committed
-- 🟡 Yellow: Partially committed
-- 🔴 Red: No team committed
+### Initiative Status (Left Border + Badges)
 
-### Color Code for Teams
+The app uses a 4-color system to show initiative status:
 
-Would flag the risk that a team is requested to much in terms of contribution to multiple initiatives. This is visualised comparing the number of initiatives the team commit, compared to a configurable threshold.
-- 🟢 Green: Team has no committment
-- 🟡 Yellow: Team has some committment, below threshold
-- 🔴 Red: Team has some committment, at/over threshold
+- 🟢 **Green - Done**: All participating teams have completed their work
+- 🔵 **Blue - Could Complete**: Teams are committed, no teams waiting (could finish this quarter)
+- 🟡 **Yellow - Can Proceed**: Some teams committed, some still uncommitted (partial progress)
+- 🔴 **Red - Blocked**: No teams committed yet, work cannot proceed
 
-### Priority Inversion Indicators
+**Where you see this:**
+- **Initiative left border** (Initiatives section) - colored border shows status
+- **Status badges** (Next and Quarter Commitment sections) - explicit status labels
 
-⚠ Warning: Indicates priority conflicts
-- **In Next section:** Higher priority initiatives blocked while lower priority initiatives progress
-- **In Quarter Commitment:** Lower priority initiatives consuming resources needed by higher priority work
-- Hover over the ⚠ icon to see which initiatives are involved in the conflict 
+### Team Capacity (Team Tags)
+
+Team tags are colored based on committed initiatives vs. threshold:
+
+- 🟢 **Green**: No commitments (fully available)
+- 🟡 **Yellow**: Some commitments, below threshold
+- 🔴 **Red**: At or over capacity threshold
+
+### Priority Inversion Warnings
+
+⚠ **Orange warning icons** appear when:
+- Higher priority initiatives are blocked or partially committed
+- Lower priority initiatives have teams that higher priority initiatives need
+- Hover over ⚠ to see which initiatives are in conflict
+
+## Page Organization
+
+1. **Header** - Quarter name, capacity threshold, export/import controls
+2. **Initiatives and Team Commitment** - Main workspace to manage initiatives and team states
+3. **Quarter Commitment** - Initiatives that could complete this quarter (all teams committed or completed)
+4. **Next** - Initiatives that won't complete this quarter (some teams still uncommitted)
+5. **Team Summary** - View by team showing their committed initiatives
 
 ## Getting Started
 
 1. Open `quarterly-planner.html` in any modern web browser
 2. The app loads with sample data to demonstrate functionality
-3. Start editing for your needs
+3. Use tooltips (ⓘ icons) to learn about each section
+4. Start managing your initiatives
 
-## Usage
-
-All tooltips (info icons plus hover tooltips) are designed to help first-time users understand the app without external documentation.
-
-### Header Controls
+## Basic Usage
 
 ### Managing Initiatives
 
-- **Add Initiative**: Click "+ Add Initiative" button (all teams start as Uncommitted)
+- **Add**: Click "+ Add Initiative" button
+- **Reorder**: Drag the ⋮⋮ grip handle to change priority
 - **Edit Name**: Click the initiative name to edit inline
-- **Delete**: Click "Delete" button (with confirmation)
+- **Delete**: Click the × button
 
-Drag team tags between three columns:
+### Managing Team States
+
+Drag team tags between columns in the Initiatives section:
+
 - **Uncommitted**: Team is being asked but hasn't committed
 - **Committed**: Team has committed to work on this initiative
 - **Completed**: Team has finished their work
+- **Not Participating**: Team is not involved in this initiative
 
-Changes save automatically (use the local storage).
+Changes save automatically to browser localStorage.
 
 ### Managing Teams
 
-Teams are managed by editing the exported JSON file directly:
+Teams are managed by editing the exported JSON file:
 
-```json
-{
-  "teams": [
-    {"id": "team-1", "name": "Backend Team"},
-    {"id": "team-2", "name": "New Team"}
-  ]
-}
-```
-
-After editing:
-1. Import the modified JSON file
-2. New teams automatically appear as "Uncommitted" for all initiatives
+1. Click "Export Data" to download JSON
+2. Edit the `teams` array (add/remove/rename teams)
+3. Click "Import Data" to load the modified JSON
 
 ## Data Model
-
-The application uses this JSON structure:
 
 ```json
 {
@@ -101,30 +101,18 @@ The application uses this JSON structure:
       "name": "Customer Dashboard Redesign",
       "teamStates": {
         "team-1": "committed"
-      }
+      },
+      "eta": "End of Q1"
     }
   ]
 }
 ```
 
-## Workflow Example
-
-### Quarterly Planning Meeting
-
-1. Open the application
-2. Update quarter name (e.g., "Q2 2026")
-3. Adjust max initiatives threshold if needed
-4. Add initiatives for the quarter
-5. Drag teams to "Committed" as planning discussion progresses
-6. Check Team Summary for overcommitment (red headers)
-7. Review which initiatives show "✓ All Committed"
-8. Export JSON to share with stakeholders
-
-### During the Quarter
-
-1. Import the planning JSON file
-2. Drag teams to "Completed" as work finishes
-3. Export updated state periodically
+**Team States:**
+- `uncommitted` - Being asked, not committed
+- `committed` - Committed to work this quarter
+- `completed` - Work finished
+- `not-applicable` - Not involved in this initiative
 
 ## Browser Compatibility
 
@@ -132,18 +120,8 @@ Works in all modern browsers that support:
 - HTML5 Drag and Drop API
 - localStorage
 - ES6 JavaScript
-- Blob API
 
 Tested in Chrome, Firefox, Safari, and Edge.
-
-## Future Enhancements
-
-- Jira integration
-- Multi-quarter tracking
-- Backend database
-- User authentication and permissions
-- Advanced reporting and charts
-- Team management UI
 
 ## License
 
