@@ -770,27 +770,27 @@ function analyzePriorityConflicts() {
 
     // Check each initiative against higher priority initiatives
     appState.initiatives.forEach((currentInit, currentIndex) => {
-        // Skip if current initiative is blocked (not progressing)
+        // Skip blocked initiatives - they can't cause conflicts since they're not progressing
         if (getInitiativeStatus(currentInit) === 'blocked') {
             return;
         }
 
         const currentCommittedTeams = getCommittedTeams(currentInit);
 
-        // Check all higher priority initiatives (lower indices)
-        for (let i = 0; i < currentIndex; i++) {
-            const higherPriorityInit = appState.initiatives[i];
+        // Check all higher priority initiatives (appear earlier in list)
+        const higherPriorityInitiatives = appState.initiatives.slice(0, currentIndex);
+
+        higherPriorityInitiatives.forEach(higherPriorityInit => {
             const uncommittedTeams = getUncommittedTeams(higherPriorityInit);
 
-            // Check for team overlap
-            const hasOverlap = hasTeamOverlap(currentCommittedTeams, uncommittedTeams);
-
-            if (hasOverlap) {
-                // Record the conflict
+            // Priority inversion occurs when:
+            // - Lower priority initiative (current) has committed teams
+            // - Higher priority initiative needs those same teams but they're uncommitted
+            if (hasTeamOverlap(currentCommittedTeams, uncommittedTeams)) {
                 conflictMap[higherPriorityInit.id].blockedBy.push(currentInit.id);
                 conflictMap[currentInit.id].blocking.push(higherPriorityInit.id);
             }
-        }
+        });
     });
 
     return conflictMap;
@@ -1207,40 +1207,7 @@ function showTooltip(icon, method = 'click') {
     tooltipOpenMethod = method;
 
     // Position tooltip using fixed positioning relative to viewport
-    setTimeout(() => {
-        const iconRect = icon.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-
-        // Get tooltip dimensions
-        tooltip.style.left = '0';
-        tooltip.style.top = '0';
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const tooltipWidth = tooltipRect.width;
-        const tooltipHeight = tooltipRect.height;
-
-        // Calculate ideal centered position below icon
-        const iconCenterX = iconRect.left + (iconRect.width / 2);
-        const idealLeft = iconCenterX - (tooltipWidth / 2);
-        const tooltipTop = iconRect.bottom + 10;
-
-        // Constrain to viewport with 20px margins
-        const minLeft = 20;
-        const maxLeft = viewportWidth - tooltipWidth - 20;
-        const finalLeft = Math.max(minLeft, Math.min(maxLeft, idealLeft));
-
-        // Apply position
-        tooltip.style.left = finalLeft + 'px';
-        tooltip.style.top = tooltipTop + 'px';
-
-        // Position arrow to point at icon center
-        const arrowLeft = iconCenterX - finalLeft;
-        const minArrow = 20;
-        const maxArrow = tooltipWidth - 20;
-        const constrainedArrow = Math.max(minArrow, Math.min(maxArrow, arrowLeft));
-
-        tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
-        tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
-    }, 0);
+    setTimeout(() => positionTooltip(tooltip, icon), 0);
 }
 
 /**
@@ -1256,6 +1223,45 @@ function hideTooltip(icon) {
             tooltipOpenMethod = null;
         }
     }
+}
+
+/**
+ * Position a tooltip element relative to an icon element
+ * @param {HTMLElement} tooltip - The tooltip element to position
+ * @param {HTMLElement} icon - The icon element to position relative to
+ */
+function positionTooltip(tooltip, icon) {
+    const iconRect = icon.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+
+    // Reset position to measure natural dimensions
+    tooltip.style.left = '0';
+    tooltip.style.top = '0';
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const tooltipWidth = tooltipRect.width;
+
+    // Calculate ideal centered position below icon
+    const iconCenterX = iconRect.left + (iconRect.width / 2);
+    const idealLeft = iconCenterX - (tooltipWidth / 2);
+    const tooltipTop = iconRect.bottom + 10;
+
+    // Constrain to viewport with 20px margins
+    const minLeft = 20;
+    const maxLeft = viewportWidth - tooltipWidth - 20;
+    const finalLeft = Math.max(minLeft, Math.min(maxLeft, idealLeft));
+
+    // Apply position
+    tooltip.style.left = finalLeft + 'px';
+    tooltip.style.top = tooltipTop + 'px';
+
+    // Position arrow to point at icon center
+    const arrowLeft = iconCenterX - finalLeft;
+    const minArrow = 20;
+    const maxArrow = tooltipWidth - 20;
+    const constrainedArrow = Math.max(minArrow, Math.min(maxArrow, arrowLeft));
+
+    tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
+    tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
 }
 
 /**
@@ -1397,39 +1403,7 @@ function showConflictTooltip(element, message) {
     document.body.appendChild(tooltip);
 
     // Position tooltip with arrow pointing at the warning icon
-    setTimeout(() => {
-        const iconRect = element.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-
-        // Get tooltip dimensions
-        tooltip.style.left = '0';
-        tooltip.style.top = '0';
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const tooltipWidth = tooltipRect.width;
-
-        // Calculate ideal centered position below icon
-        const iconCenterX = iconRect.left + (iconRect.width / 2);
-        const idealLeft = iconCenterX - (tooltipWidth / 2);
-        const tooltipTop = iconRect.bottom + 10;
-
-        // Constrain to viewport with 20px margins
-        const minLeft = 20;
-        const maxLeft = viewportWidth - tooltipWidth - 20;
-        const finalLeft = Math.max(minLeft, Math.min(maxLeft, idealLeft));
-
-        // Apply position
-        tooltip.style.left = finalLeft + 'px';
-        tooltip.style.top = tooltipTop + 'px';
-
-        // Position arrow to point at icon center
-        const arrowLeft = iconCenterX - finalLeft;
-        const minArrow = 20;
-        const maxArrow = tooltipWidth - 20;
-        const constrainedArrow = Math.max(minArrow, Math.min(maxArrow, arrowLeft));
-
-        tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
-        tooltip.style.setProperty('--arrow-transform', 'translateX(-50%)');
-    }, 0);
+    setTimeout(() => positionTooltip(tooltip, element), 0);
 }
 
 /**
@@ -1443,32 +1417,82 @@ function hideConflictTooltip() {
 }
 
 /**
+ * Build conflict message from conflicts object
+ * @param {Object} conflicts - The conflicts object {blockedBy: [], blocking: []}
+ * @returns {string} Formatted conflict message
+ */
+function buildConflictMessage(conflicts) {
+    const conflictDescriptions = [];
+
+    if (conflicts.blocking && conflicts.blocking.length > 0) {
+        const names = conflicts.blocking
+            .map(id => getInitiativeName(id))
+            .join(', ');
+        conflictDescriptions.push(`Blocking: ${names}`);
+    }
+
+    if (conflicts.blockedBy && conflicts.blockedBy.length > 0) {
+        const names = conflicts.blockedBy
+            .map(id => getInitiativeName(id))
+            .join(', ');
+        conflictDescriptions.push(`Blocked by: ${names}`);
+    }
+
+    return conflictDescriptions.join(' | ');
+}
+
+/**
  * Build and show conflict details message
  * @param {HTMLElement} element - The element to attach tooltip to
  * @param {Object} initiative - The initiative object
  * @param {Object} conflicts - The conflicts object {blockedBy: [], blocking: []}
  */
 function showConflictDetails(element, initiative, conflicts) {
-    let messages = [];
-
-    // Check if blocking higher priority initiatives
-    if (conflicts.blocking && conflicts.blocking.length > 0) {
-        const names = conflicts.blocking
-            .map(id => getInitiativeName(id))
-            .join(', ');
-        messages.push(`Blocking: ${names}`);
-    }
-
-    // Check if blocked by lower priority initiatives
-    if (conflicts.blockedBy && conflicts.blockedBy.length > 0) {
-        const names = conflicts.blockedBy
-            .map(id => getInitiativeName(id))
-            .join(', ');
-        messages.push(`Blocked by: ${names}`);
-    }
-
-    const message = messages.join(' | ');
+    const message = buildConflictMessage(conflicts);
     showConflictTooltip(element, message);
+}
+
+/**
+ * Check if an initiative has any conflicts
+ * @param {Object} initiative - The initiative object
+ * @param {Object} conflictMap - The complete conflict map
+ * @returns {boolean} True if initiative has conflicts
+ */
+function hasConflicts(initiative, conflictMap) {
+    const conflicts = conflictMap[initiative.id];
+    return conflicts && (conflicts.blockedBy.length > 0 || conflicts.blocking.length > 0);
+}
+
+/**
+ * Create a conflict indicator element
+ * @param {Object} initiative - The initiative object
+ * @param {Object} conflicts - The conflicts object for this initiative
+ * @returns {HTMLElement} The indicator element
+ */
+function createConflictIndicator(initiative, conflicts) {
+    const indicator = document.createElement('span');
+    indicator.className = 'priority-conflict-indicator';
+    indicator.textContent = '⚠';
+    indicator.setAttribute('aria-label', 'Priority conflict indicator');
+    indicator.tabIndex = 0;
+
+    return indicator;
+}
+
+/**
+ * Attach conflict tooltip handlers to an indicator element
+ * @param {HTMLElement} indicator - The indicator element
+ * @param {Object} initiative - The initiative object
+ * @param {Object} conflicts - The conflicts object
+ */
+function attachConflictHandlers(indicator, initiative, conflicts) {
+    const showDetails = () => showConflictDetails(indicator, initiative, conflicts);
+    const hideDetails = () => hideConflictTooltip();
+
+    indicator.addEventListener('mouseenter', showDetails);
+    indicator.addEventListener('mouseleave', hideDetails);
+    indicator.addEventListener('focus', showDetails);
+    indicator.addEventListener('blur', hideDetails);
 }
 
 /**
@@ -1478,38 +1502,14 @@ function showConflictDetails(element, initiative, conflicts) {
  * @param {Object} conflictMap - The complete conflict map
  */
 function addConflictIndicator(nameCell, initiative, conflictMap) {
-    const conflicts = conflictMap[initiative.id];
-
-    // Check if this initiative has any conflicts
-    if (!conflicts || (conflicts.blockedBy.length === 0 && conflicts.blocking.length === 0)) {
+    if (!hasConflicts(initiative, conflictMap)) {
         return;
     }
 
-    const indicator = document.createElement('span');
-    indicator.className = 'priority-conflict-indicator';
-    indicator.textContent = '⚠';
-    indicator.setAttribute('aria-label', 'Priority conflict indicator');
-    indicator.tabIndex = 0;  // Keyboard accessibility
+    const conflicts = conflictMap[initiative.id];
+    const indicator = createConflictIndicator(initiative, conflicts);
+    attachConflictHandlers(indicator, initiative, conflicts);
 
-    // Add hover handlers
-    indicator.addEventListener('mouseenter', () => {
-        showConflictDetails(indicator, initiative, conflicts);
-    });
-
-    indicator.addEventListener('mouseleave', () => {
-        hideConflictTooltip();
-    });
-
-    // Add keyboard handlers (focus/blur)
-    indicator.addEventListener('focus', () => {
-        showConflictDetails(indicator, initiative, conflicts);
-    });
-
-    indicator.addEventListener('blur', () => {
-        hideConflictTooltip();
-    });
-
-    // Prepend to name cell (before text)
     nameCell.insertBefore(indicator, nameCell.firstChild);
 }
 
@@ -1585,10 +1585,13 @@ function initializeApp() {
 function render() {
     // Calculate team colors once for entire render cycle (performance optimization)
     const teamColorCache = calculateTeamColors();
+
+    // Analyze conflicts for priority inversion indicators
     const conflictMap = analyzePriorityConflicts();
+
     updateHeaderControls();
     renderInitiatives(teamColorCache);
-    renderInitiativesSummary(teamColorCache, conflictMap);
+    renderInitiativesSummary(teamColorCache, conflictMap);  // Uses conflictMap
     renderTeamSummary(teamColorCache);
 }
 
