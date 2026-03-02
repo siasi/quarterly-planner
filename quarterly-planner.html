@@ -262,7 +262,7 @@
         }
 
         .badge-committed {
-            background: #27ae60;
+            background: #f39c12;  /* Yellow - for "Can Proceed" */
             color: white;
         }
 
@@ -274,6 +274,26 @@
         .badge-blocked {
             background: #e74c3c;
             color: white;
+        }
+
+        .badge-done {
+            background: #27ae60;  /* Green - for "Done" */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge-could-complete {
+            background: #3498db;  /* Blue - for "Could Complete" */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
         }
 
         .state-column {
@@ -584,6 +604,7 @@
                 <thead>
                     <tr>
                         <th>Initiative Name</th>
+                        <th>Status</th>
                         <th>Contributing Teams</th>
                         <th>ETA</th>
                     </tr>
@@ -1612,13 +1633,23 @@ function getInitiativeStatusColor(initiative) {
     const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
     const hasCompleted = activeStates.some(state => state === TEAM_STATES.COMPLETED);
 
-    if (!hasUncommitted) {
-        return COLORS.GREEN; // Green: All active teams committed
-    } else if (hasCommitted || hasCompleted) {
-        return COLORS.YELLOW; // Yellow: Partially committed
-    } else {
-        return COLORS.RED; // Red: Not started
+    // All teams completed/N/A → Green (Done)
+    if (!hasUncommitted && !hasCommitted && hasCompleted) {
+        return COLORS.GREEN;
     }
+
+    // Some committed, no uncommitted → Blue (Could Complete)
+    if (hasCommitted && !hasUncommitted) {
+        return COLORS.BLUE;
+    }
+
+    // Some committed, some uncommitted → Yellow (Can Proceed)
+    if (hasCommitted && hasUncommitted) {
+        return COLORS.YELLOW;
+    }
+
+    // No committed, some uncommitted → Red (Blocked)
+    return COLORS.RED;
 }
 
 /**
@@ -2064,6 +2095,18 @@ function renderQuarterSection(initiatives, teamColorCache, conflictMap) {
         addConflictIndicator(nameCell, initiative, conflictMap);
 
         row.appendChild(nameCell);
+
+        // Status cell
+        const statusCell = document.createElement('td');
+        const activeStates = getActiveTeamStates(initiative);
+        const hasCommitted = activeStates.some(state => state === TEAM_STATES.COMMITTED);
+
+        if (hasCommitted) {
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-could-complete" title="Teams are committed, initiative could complete this quarter">🤞 Could Complete</span>';
+        } else {
+            statusCell.innerHTML = '<span class="initiative-commitment-badge badge-done" title="All participating teams have completed their work">✅ Done</span>';
+        }
+        row.appendChild(statusCell);
 
         // Contributing teams cell
         const teamsCell = document.createElement('td');
