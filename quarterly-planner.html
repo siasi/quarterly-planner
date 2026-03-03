@@ -1749,7 +1749,10 @@ function createInitiativeHeader(initiative, row) {
     deleteBtn.innerHTML = '×';
     deleteBtn.title = 'Delete this initiative';
     deleteBtn.setAttribute('aria-label', `Delete initiative: ${initiative.name}`);
-    deleteBtn.addEventListener('click', () => deleteInitiative(initiative.id));
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteInitiative(initiative.id);
+    });
 
     controls.appendChild(deleteBtn);
 
