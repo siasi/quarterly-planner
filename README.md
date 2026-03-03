@@ -1,14 +1,14 @@
 # Quarterly Planning Tracker
 
-A simple single-page web application for tracking team commitments across initiatives during quarterly planning.
+A simple single-page web application for tracking team commitments across initiatives during quarterly planning. It helps define initiatives and the status of initiatives based on team commitment, identify priority reversals and bottlenecks 
 
 ## Features
 
-- **Drag-and-drop interface** for managing team states (Uncommitted → Committed → Completed)
-- **Priority-based sorting** - reorder initiatives to set priorities
-- **4-color status system** - visual indicators show initiative progress at a glance
+- **Drag-and-drop interface** - for reordering initiatives to set priorities and managing team states (Uncommitted → Committed → Completed)
+- **Priority-based sorting** - all sections list initiatives by priority
+- **Color Code** - visual indicators show initiative and team status at a glance
 - **Priority inversion warnings** - alerts when teams work on lower priority initiatives while higher priority work waits
-- **Capacity tracking** - visual warnings when teams are overcommitted
+- **Capacity warning** - visual warnings when teams are overcommitted
 - **Auto-save** to browser localStorage
 - **Export/Import** JSON files for sharing and archiving
 - **Zero dependencies** - runs entirely in the browser
@@ -25,16 +25,22 @@ The app uses a 4-color system to show initiative status:
 - 🔴 **Red - Blocked**: No teams committed yet, work cannot proceed
 
 **Where you see this:**
-- **Initiative left border** (Initiatives section) - colored border shows status
-- **Status badges** (Next and Quarter Commitment sections) - explicit status labels
+- **Initiative left border** (_Initiatives and Team Commitment_ section) - colored border shows status
+- **Status badges** (_Next_ and _Quarter Commitment_ sections) - explicit status labels
 
-### Team Capacity (Team Tags)
+### Team Capacity (Left Border + Team badges)
 
-Team tags are colored based on committed initiatives vs. threshold:
+The app uses a 4-color system to show capacity issue based on number of committed initiatives vs. threshold:
 
-- 🟢 **Green**: No commitments (fully available)
+- 🟢 **Green**: No commitments (ready to contribute)
 - 🟡 **Yellow**: Some commitments, below threshold
 - 🔴 **Red**: At or over capacity threshold
+
+**Where you see this:**
+- **Team left border** (_Team Summary_ section) - colored border shows status
+- **Team badges** (_Next_ and _Quarter Commitment_ sections) - explicit status labels
+
+You can configure the threshold in the header. 
 
 ### Priority Inversion Warnings
 
