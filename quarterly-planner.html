@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quarterly Planning Tracker</title>
     <style>
+        :root {
+            /* Tooltip System */
+            --tooltip-max-width: 600px;
+            --tooltip-viewport-margin: 20px;
+            --tooltip-arrow-size: 6px;
+            --tooltip-compact-width: 200px;
+            --tooltip-top-offset: 10px;
+
+            /* Warning Indicator */
+            --warning-indicator-size: 18px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -497,7 +509,7 @@
             padding: 12px 16px;
             border-radius: 6px;
             width: max-content;
-            max-width: min(600px, calc(100vw - 40px));
+            max-width: min(var(--tooltip-max-width), calc(100vw - calc(var(--tooltip-viewport-margin) * 2)));
             font-size: 13px;
             line-height: 1.5;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -521,12 +533,12 @@
             bottom: 100%;
             left: var(--arrow-left, 50%);
             transform: var(--arrow-transform, translateX(-50%));
-            border: 6px solid transparent;
+            border: var(--tooltip-arrow-size) solid transparent;
             border-bottom-color: #2c3e50;
         }
 
         .tooltip-compact {
-            max-width: 200px;
+            max-width: var(--tooltip-compact-width);
             font-size: 12px;
             padding: 8px 12px;
         }
@@ -535,7 +547,7 @@
             cursor: pointer;
             margin-right: 6px;
             color: #f39c12;
-            font-size: 18px;
+            font-size: var(--warning-indicator-size);
             -webkit-user-select: none;
             -moz-user-select: none;
             user-select: none;
@@ -664,6 +676,26 @@ const STORAGE_KEY = 'quarterly-planning-data';
 const ID_PREFIXES = {
     TEAM: 'team',
     INITIATIVE: 'init'
+};
+
+// UI Configuration
+const UI_CONFIG = {
+    TOOLTIP: {
+        VIEWPORT_MARGIN: 20,        // Pixels from viewport edge
+        ARROW_MARGIN: 20,            // Minimum pixels from tooltip edge for arrow
+        TOP_OFFSET: 10,              // Pixels below trigger element
+        SHOW_DELAY_MS: 300           // Milliseconds before showing on hover/focus
+    },
+    CALENDAR: {
+        QUARTERS_PER_YEAR: 4
+    },
+    DEFAULTS: {
+        MAX_INITIATIVES_PER_TEAM: 2
+    },
+    ID_GENERATION: {
+        RANDOM_SLICE_START: 2,
+        RANDOM_SLICE_END: 11
+    }
 };
 
 // === HELPER FUNCTIONS ===
@@ -872,7 +904,7 @@ function generateIncrementalQuarters(startQuarter, count = 3) {
     for (let i = 0; i < count; i++) {
         quarters.push(`Q${quarter} ${year}`);
         quarter++;
-        if (quarter > 4) {
+        if (quarter > UI_CONFIG.CALENDAR.QUARTERS_PER_YEAR) {
             quarter = 1;
             year++;
         }
@@ -893,7 +925,7 @@ let appState = {
 // Generate unique IDs
 let idCounter = 0;
 function generateId(prefix) {
-    return `${prefix}-${Date.now()}-${idCounter++}-${Math.random().toString(36).slice(2, 11)}`;
+    return `${prefix}-${Date.now()}-${idCounter++}-${Math.random().toString(36).slice(UI_CONFIG.ID_GENERATION.RANDOM_SLICE_START, UI_CONFIG.ID_GENERATION.RANDOM_SLICE_END)}`;
 }
 
 // === SAMPLE DATA ===
@@ -1047,7 +1079,7 @@ function validateImportedData(data) {
 
     // Validate and fix maxInitiativesPerTeam
     if (typeof data.maxInitiativesPerTeam !== 'number' || data.maxInitiativesPerTeam < 1) {
-        data.maxInitiativesPerTeam = 2; // Default
+        data.maxInitiativesPerTeam = UI_CONFIG.DEFAULTS.MAX_INITIATIVES_PER_TEAM;
     }
 
     // Ensure all initiatives have eta field
@@ -1264,11 +1296,11 @@ function positionTooltip(tooltip, icon) {
     // Calculate ideal centered position below icon
     const iconCenterX = iconRect.left + (iconRect.width / 2);
     const idealLeft = iconCenterX - (tooltipWidth / 2);
-    const tooltipTop = iconRect.bottom + 10;
+    const tooltipTop = iconRect.bottom + UI_CONFIG.TOOLTIP.TOP_OFFSET;
 
-    // Constrain to viewport with 20px margins
-    const minLeft = 20;
-    const maxLeft = viewportWidth - tooltipWidth - 20;
+    // Constrain to viewport with margins
+    const minLeft = UI_CONFIG.TOOLTIP.VIEWPORT_MARGIN;
+    const maxLeft = viewportWidth - tooltipWidth - UI_CONFIG.TOOLTIP.VIEWPORT_MARGIN;
     const finalLeft = Math.max(minLeft, Math.min(maxLeft, idealLeft));
 
     // Apply position
@@ -1277,8 +1309,8 @@ function positionTooltip(tooltip, icon) {
 
     // Position arrow to point at icon center
     const arrowLeft = iconCenterX - finalLeft;
-    const minArrow = 20;
-    const maxArrow = tooltipWidth - 20;
+    const minArrow = UI_CONFIG.TOOLTIP.ARROW_MARGIN;
+    const maxArrow = tooltipWidth - UI_CONFIG.TOOLTIP.ARROW_MARGIN;
     const constrainedArrow = Math.max(minArrow, Math.min(maxArrow, arrowLeft));
 
     tooltip.style.setProperty('--arrow-left', constrainedArrow + 'px');
@@ -1346,7 +1378,7 @@ function initializeTooltips() {
         if (icon) {
             tooltipHoverTimeout = setTimeout(() => {
                 showTooltip(icon, 'hover');
-            }, 300);
+            }, UI_CONFIG.TOOLTIP.SHOW_DELAY_MS);
         }
     }, true);
 
@@ -1380,7 +1412,7 @@ function initializeTooltips() {
             // Focus shows tooltip after delay (like hover)
             tooltipFocusTimeout = setTimeout(() => {
                 showTooltip(event.target, 'focus');
-            }, 300);
+            }, UI_CONFIG.TOOLTIP.SHOW_DELAY_MS);
         }
     }, true);
 
