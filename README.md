@@ -4,7 +4,7 @@ A simple single-page web application for tracking team commitments across initia
 
 ## Features
 
-- **Drag-and-drop interface** - for reordering initiatives to set priorities and managing team states (Uncommitted → Committed → Completed)
+- **Drag-and-drop interface** - for reordering initiatives and managing team states (Uncommitted → Committed → Completed)
 - **Priority-based sorting** - all sections list initiatives by priority
 - **Color Code** - visual indicators show initiative and team status at a glance
 - **Priority inversion warnings** - alerts when teams work on lower priority initiatives while higher priority work waits
