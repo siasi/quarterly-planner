@@ -88,10 +88,26 @@
 - ~~Show when lower priority initiatives are progressing vs blocked~~
 - ~~Consider: Color-coded borders, backgrounds, or status indicators~~
 - ~~Goal: Make priority/status conflicts immediately visible~~
-- **Implemented:** ⚠ indicators on initiative names with hover-triggered tooltips
-- **Design:** Detects when higher priority initiatives need teams that are committed to lower priority work
-- **Interaction:** Hover over indicator to see list of conflicting initiatives
-- **Commit:** c91b5a7 (and related commits)
+
+**Implemented Features:**
+- **Priority Inversion Detection:** ⚠ indicators on initiative names when higher priority initiatives need teams that are committed to lower priority work
+- **Hover Tooltips:** Display conflicting initiative names on hover
+- **4-Color Status Badge System:**
+  - 🟢 Green (Done): All participating teams completed
+  - 🔵 Blue (Could Complete): Teams committed, no teams waiting
+  - 🟡 Yellow (Can Proceed): Some teams committed, some uncommitted
+  - 🔴 Red (Blocked): No teams committed yet
+- **Consistent Color Scheme:** Initiative left borders match badge colors across all sections
+- **Comprehensive Documentation:** README updated with color code explanation
+
+**Key Commits:**
+- c91b5a7 - Initial priority inversion detection with warning indicators
+- 1581772, 46f1ac1, ac1d5a7 - Tooltip refinements (positioning, hover behavior)
+- 8b8919b - DRY refactoring (extract duplicate positioning logic)
+- 4aff2d7 - Implement 4-color status badge system
+- 16bf009 - Simplify README and document color scheme
+- 97fcbd0 - Extract magic numbers to constants (code quality)
+- 9a6f3b4 - Fix delete button event propagation
 
 ## Implementation Notes
 
